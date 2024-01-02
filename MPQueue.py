@@ -1,0 +1,126 @@
+import os
+import sys
+import atexit
+import multiprocessing 
+import datetime 
+from multiprocessing import Process,Queue
+import logging
+import time
+
+# custom process class
+class MPQueue(Process):
+
+
+  #---------------------------------------------------------------------------------------------
+  def __init__(self,args,parms) :
+    Process.__init__(self)
+    self.exit = multiprocessing.Event()
+    #atexit.register(self.over)
+    #atexit.register(self.oh)
+    self.args=args
+    self.parms=parms
+    self.opCount=0
+    self.opCountLast=0
+    self.opThresh=100
+    self.summary=100
+    self.thru=0
+    self.queueHwm=0
+    self.thruHwm=0
+    self.queueHwmTime=datetime.datetime.now()
+    self.thruHwmTime=datetime.datetime.now()
+    self.last=time.time()
+    self.queue=Queue()
+    #print(f'Queue Reader created queue {self}')
+
+  #---------------------------------------------------------------------------------------------
+  def setArgs(self,args):
+    self.args=args
+    #print(f'Queue setArgs : {args}')
+
+  #---------------------------------------------------------------------------------------------
+  def getQueue(self):
+    return(self.queue)
+
+  #---------------------------------------------------------------------------------------------
+  def putQueue(self,val):
+    self.queue.put(val)
+
+  #---------------------------------------------------------------------------------------------
+  def run(self):
+    logging.info(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
+    self.last=time.time()
+    while True :
+      try :
+        msg = self.queue.get()
+        msg["_qSize"] = self.queue.qsize()
+        self.processMsg(msg)
+      except KeyboardInterrupt:
+        print("Caught KeyboardInterrupt, terminating Queue Reader")
+        break
+      except Exception as e :
+        print(f'Queue reader stopped {e}')
+        break
+    self.over()
+
+  #---------------------------------------------------------------------------------------------
+  def oh(self):
+    print(f'Oh !! CTRL-C')
+
+  #---------------------------------------------------------------------------------------------
+  def over(self):
+    thruHwmTime=self.thruHwmTime.strftime("%Y-%m-%d %H:%M:%S")
+    queueHwmTime=self.queueHwmTime.strftime("%Y-%m-%d %H:%M:%S")
+    print(f'QueueReader stopped processed {self.opCount} ThruHighwatermark {self.thruHwm:9.2f} at {self.thruHwmTime} QueueHighwatermark {self.queueHwm} at {self.queueHwmTime}')
+    #self.exit.set()
+    #os._exit(os.EX_OK)
+    sys.exit()
+
+  #---------------------------------------------------------------------------------------------
+  def processMsg(self,m) :
+    if "type" in m :
+      if  m["type"] == "report" :
+        if  m["nature"] == "req" :
+          self.opCount += 1
+        now=time.time()
+        interval=now - self.last
+        if (interval > self.opThresh) :
+          self.thru = (self.opCount - self.opCountLast) / interval
+          self.last=now
+          self.opCountLast=self.opCount
+          if self.thru > self.thruHwm : 
+            self.thruHwm = self.thru
+            self.thruHwmTime = datetime.datetime.now()
+        if m["_qSize"] > self.queueHwm : 
+          self.queueHwm = m["_qSize"]
+          self.queueHwmTime = datetime.datetime.now()
+        self.out(m)
+      elif m["type"] == "error" :
+        print(f'{m}',file=sys.stderr) 
+      elif m["type"] == "cmd" :
+        if m["cmd"].startswith("set ") :
+          t=m["cmd"].split()
+          #print(f'{t}')
+          if t[1] == "summary" :
+            #print(f'setting summary cal {self.opCount} {self.opThresh}')
+            self.opThresh=int(t[2])
+        if m["cmd"] == "stop" :
+          self.over()
+    else :
+       print(f'{m}',file=sys.stderr) 
+
+   
+  #---------------------------------------------------------------------------------------------
+  def out(self,m) :
+    if self.args.outformat == 'short' :
+      print((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
+            f' {self.opCount:8d} {self.thru:9.2f}'
+            f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
+            f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+           ))
+    else : 
+      print((f'{m["time"][:-3]} typ {m["type"]:8s}'
+            f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
+            f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
+            f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+           ))
+   
