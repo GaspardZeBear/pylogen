@@ -17,11 +17,11 @@ class Defaults() :
   summary="1"
   outformat="short"
   lengths='0,256,512,1024,2048,4096,8192'
-  project_id="fra-sdco-bench-dev"
-  location_id="europe-west3"
-  key_ring_id="keyRingZeClown3"
-  crypto_key_id="aKeyName"
-  version_id=1
+#  project_id="fra-sdco-bench-dev"
+#  location_id="europe-west3"
+#  key_ring_id="keyRingZeClown3"
+#  crypto_key_id="aKeyName"
+#  version_id=1
   extra='{}'
 
   @staticmethod

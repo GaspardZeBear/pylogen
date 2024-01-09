@@ -67,12 +67,12 @@ def myParser(queue,input) :
   parser.add_argument('--pauselen',   help="",default=Defaults.pauselen)
   parser.add_argument('--summary',    help="",default=Defaults.summary)
   parser.add_argument('--outformat',  help="",default=Defaults.outformat)
-  parser.add_argument('--project_id', help="",default=Defaults.project_id)
-  parser.add_argument('--location_id',help="",default=Defaults.location_id)
-  parser.add_argument('--key_ring_id',help="",default=Defaults.key_ring_id)
-  parser.add_argument('--version_id', help="",default=Defaults.version_id)
+  #parser.add_argument('--project_id', help="",default=Defaults.project_id)
+  #parser.add_argument('--location_id',help="",default=Defaults.location_id)
+  #parser.add_argument('--key_ring_id',help="",default=Defaults.key_ring_id)
+  #parser.add_argument('--version_id', help="",default=Defaults.version_id)
   parser.add_argument('--id',         help="",default=Defaults.id)
-  parser.add_argument('--crypto_key_id',default=Defaults.crypto_key_id)
+  #parser.add_argument('--crypto_key_id',default=Defaults.crypto_key_id)
   parser.add_argument('-f','--file', action="store",help="scenario")
 
   # --------
