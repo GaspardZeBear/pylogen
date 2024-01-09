@@ -87,26 +87,26 @@ action : name of a CUT
 A file with 1 line per CUT. Useful to mix operations at the same time.
 May be used to shape a load profile with postpone starts and durations
 
-### Samples Pylogen 
+### Samples NKmsClient 
 
-python3 Pylogen.py dummy --sleep 0  --le 384 --pauselen 0 --pauselo 0.001  --duration 10 --ram 0 --proc 8<br>
-python3 Pylogen.py symmetric  --le 384,512,1024 --pauselen 0 --pauseloop 0 --duration 10 --proc 1<br>
-python3 Pylogen.py signature384  --le 384 --pauselen 0 --pauselo 0.01  --duration 10 --proc 2<br>
-python3 Pylogen.py signature384  --le 384 --pauselen 0 --pauselo 0  --duration 10 --ram 0 --proc 4<br>
-python3 Pylogen.py signature384  --le 384 --pauselen 0 --pauselo 0 --duration 10 --extra '{"sha":"sha256"}' --cryp myRSA3072-256<br>
-python3 Pylogen.py signature384  --le 384 --pauselen 0 --pauselo 0 --duration 10 --extra '{"sha":"sha256"}'<br>
+python3 NKmsClient.py dummy --sleep 0  --le 384 --pauselen 0 --pauselo 0.001  --duration 10 --ram 0 --proc 8<br>
+python3 NKmsClient.py symmetric  --le 384,512,1024 --pauselen 0 --pauseloop 0 --duration 10 --proc 1<br>
+python3 NKmsClient.py signature384  --le 384 --pauselen 0 --pauselo 0.01  --duration 10 --proc 2<br>
+python3 NKmsClient.py signature384  --le 384 --pauselen 0 --pauselo 0  --duration 10 --ram 0 --proc 4<br>
+python3 NKmsClient.py signature384  --le 384 --pauselen 0 --pauselo 0 --duration 10 --extra '{"sha":"sha256"}' --cryp myRSA3072-256<br>
+python3 NKmsClient.py signature384  --le 384 --pauselen 0 --pauselo 0 --duration 10 --extra '{"sha":"sha256"}'<br>
 
-python3 Pylogen.py scenario -f Scenario.txt<br>
+python3 NKmsClient.py scenario -f Scenario.txt<br>
 (venv) [fr18711@kmsopenbanking01 gcpkms]$ cat Scenario.txt<br>
 symmetric  --le 384 --pauselen 0 --pauseloop 0.2 --duration 10 --proc 4 --ram 0<br>
 signature384  --le 384 --pauselen 0 --pauselo 0.1  --ram 0 --duration 10 --proc 2<br>
 
-### Samples NPylogen 
+### Samples Pylogen 
 
 Hereunderv Dummy and KmsEncrytSymmetric are class names (in <class>.py files)
 
-python3 NPylogen.py Dummy --sleep 0  --le 384 --pauselen 0 --pauselo 0.001  --duration 10 --ram 0 --proc 8<br>
-python3 NPylogen.py KmsEncrytSymmetric --defaults myprofile.json  --le 384,512,1024 --pauselen 0 --pauseloop 0 --duration 10 --proc 1<br>
+python3 Pylogen.py Dummy  --le 384 --pauselen 0 --pauselo 0.001  --duration 10 --ram 0 --proc 8<br>
+python3 Pylogen.py KmsEncrytSymmetric --defaults myprofile.json  --le 384,512,1024 --pauselen 0 --pauseloop 0 --duration 10 --proc 1<br>
 
 Beware : use --defaults or --def , not -d nor --defa nor --defau ...
 
