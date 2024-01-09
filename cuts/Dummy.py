@@ -11,7 +11,7 @@ from ClassUnderTest import *
 from RequestsManager import *
 from Executor import *
 
-class Dummy1(ClassUnderTest) :
+class Dummy(ClassUnderTest) :
 
   #-------------------------------------------------------------------
   def __init__(self,args,parms) :

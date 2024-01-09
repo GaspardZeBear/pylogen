@@ -53,7 +53,11 @@ Please see Pylogen.py section for new (but not fully tested) functionnalities
 
 usage: Pylogen.py {action} [-v] [--process PROCESS] [--postpone POSTPONE] [--rampup RAMPUP] [--duration DURATION] [--loops LOOPS] [--lengths LENGTHS] [--extra EXTRA] [--pauseloop PAUSELOOP] [--pauselen PAUSELEN] [--summary SUMMARY] [--outformat OUTFORMAT]
 
-action : name of a CUT
+action : either 
+- name of a CUT
+- keyword "scenario"
+
+Note : if "scenario", none of the following are usable, except --file 
 
 <br>
 -v : verbosity -vv _vvv ....  <br>
@@ -76,6 +80,8 @@ action : name of a CUT
 
 A file with 1 line per CUT. Useful to mix operations at the same time.
 May be used to shape a load profile with postpone starts and durations
+
+Sample : python3 Pylogen.py scenario --file Scenario.txt
 
 ### Samples Pylogen 
 

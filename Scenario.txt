@@ -1,2 +1,2 @@
-dummy  --id DUM1 --length 1024 --proc 2 --pauselen 0 --pauseloo 2.01 --slee 1 --loop 10 --ram 5 -vv
-dummy  --id DUM2 --length 100  --proc 3 --pauselen 0 --pauseloo 1.03 --slee 1 --loop 10 --ram 4 -vv
+cuts.Dummy  --id DUM1 --length 1024 --proc 2 --pauselen 0 --pauseloo 2.01 --loop 10 --ram 5 -vv
+cuts.Dummy  --id DUM2 --length 100  --proc 3 --pauselen 0 --pauseloo 1.03 --loop 10 --ram 4 -vv
