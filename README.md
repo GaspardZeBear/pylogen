@@ -85,7 +85,7 @@ Sample : python3 Pylogen.py scenario --file Scenario.txt
 
 ### Samples Pylogen 
 
-Hereunderv Dummy and KmsEncrytSymmetric are class names (in <class>.py files)
+Hereunder Dummy and KmsEncrytSymmetric are class names (in <class>.py files)
 
 - python3 Pylogen.py cuts.Dummy  --le 384 --pauselen 0 --pauselo 0.001  --duration 10 --ram 0 --proc 2
 - python3 Pylogen.py cuts.KmsEncrytSymmetric --defaults myprofile.json  --le 384,512,1024 --pauselen 0 --pauseloop 0 --duration 10 --proc 1 --extra '{"file":"KmsDefault.json","key":"symmetric1"}'
