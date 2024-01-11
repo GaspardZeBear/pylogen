@@ -15,6 +15,7 @@ class Defaults() :
   pauseloop="1"
   pauselen="1"
   summary="1"
+  shmsize="1024"
   outformat="short"
   lengths='0,256,512,1024,2048,4096,8192'
   extra='{}'

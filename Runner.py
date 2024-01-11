@@ -6,6 +6,7 @@ import logging
 from datetime import datetime,timedelta
 from RequestsManager import *
 from Request import *
+from Scoreboard import *
 
 #----------------------------------------------
 class Runner() :
@@ -33,6 +34,7 @@ class Runner() :
     self.thru=0
     self.setFullId()
     self.queue=self.args.queue
+    self.scoreboard=Scoreboard(self.fullId,self.parms["scoreboard"])
     now=datetime.now()
     if int(self.args.duration) > 0 :
       self.loopMethod=self.loopDuration
@@ -184,5 +186,7 @@ class Runner() :
         self.transactionId=f'None'
       for r in rmngr.getRequests() :
         self.reportRequest(rmngr,r,lengths[j])
+      self.scoreboard.update()
+      self.scoreboard.publish()
       time.sleep(float(self.args.pauselen))
 

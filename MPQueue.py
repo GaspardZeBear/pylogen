@@ -28,6 +28,8 @@ class MPQueue(Process):
     self.thruHwm=0
     self.queueHwmTime=datetime.datetime.now()
     self.thruHwmTime=datetime.datetime.now()
+    self.jtlName=f'pylogen-{self.thruHwmTime.strftime("%Y-%m-%d-%H:%M:%S")}.jtl'
+    self.jtlFile=open(self.jtlName,"w")
     self.last=time.time()
     self.queue=Queue()
     #print(f'Queue Reader created queue {self}')
@@ -111,6 +113,22 @@ class MPQueue(Process):
    
   #---------------------------------------------------------------------------------------------
   def out(self,m) :
+    if self.args.outformat == 'short' :
+      self.jtlFile.write((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
+            f' {self.opCount:8d} {self.thru:9.2f}'
+            f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
+            f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+           ))
+    else : 
+      self.jtlFile.write((f'{m["time"][:-3]} typ {m["type"]:8s}'
+            f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
+            f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
+            f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+           ))
+   
+   
+  #---------------------------------------------------------------------------------------------
+  def Xout(self,m) :
     if self.args.outformat == 'short' :
       print((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
             f' {self.opCount:8d} {self.thru:9.2f}'

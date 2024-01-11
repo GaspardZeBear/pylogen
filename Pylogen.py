@@ -8,6 +8,7 @@ import multiprocessing
 import logging
 import importlib
 import json
+from multiprocessing.shared_memory import SharedMemory
 from ClassUnderTest import *
 from Runner import *
 from Defaults import *
@@ -18,11 +19,14 @@ from MPQueue import *
 # Dynamically create an instance of args.action as cut and starts a runner process
 #------------------------------------------------------------------------------
 def launch(args):
-  parms={"queue":'',"delay":int(args.postpone)}
+  parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
   for i in range(0,int(args.process)) :
     logging.info(f'Launchin {args.action}')
     qualifiers=args.action.split('.')
     obj=qualifiers[-1]
+    scoreboard = SharedMemory(create=True, size=int(args.shmsize))
+    parms["scoreboard"] = scoreboard
+    scoreboards.append(scoreboard)
     cut=getattr(importlib.import_module(args.action), obj)(args,parms)
     mpRunner=MPRunner(args,parms,cut)
     mpRunner.daemon=True
@@ -61,6 +65,7 @@ def myParser(queue,input) :
   parser.add_argument('--rampup',     help="",default=Defaults.rampup)
   parser.add_argument('--duration',   help="",default=Defaults.duration)
   parser.add_argument('--loops',      help="",default=Defaults.loops)
+  parser.add_argument('--shmsize',    help="",default=Defaults.shmsize)
   parser.add_argument('--lengths',    help="",default=Defaults.lengths)
   parser.add_argument('--extra',      help="",default=Defaults.extra)
   parser.add_argument('--pauseloop',  help="",default=Defaults.pauseloop)
@@ -109,15 +114,25 @@ if __name__ == "__main__":
   Defaults.init()
   queue=MPQueue(None,None)
   queue.daemon=False
+  scoreboards=[]
   #queue.start()
   myParser(queue,'')
+  time.sleep(5)
   while True :
     children=multiprocessing.active_children() 
     #for c in children :
     #  print(f'{c}')
     if  len(children) == 1 :
       queue.putQueue({'type':'cmd','cmd':'stop'})
-      break 
+      break
+    for scoreboard in scoreboards :
+      try :
+        myDictLen=int.from_bytes(scoreboard.buf[0:4],byteorder='big')
+        myDictAsBytes=bytes(scoreboard.buf[4:]).decode()[:myDictLen]
+        data = json.loads(myDictAsBytes)
+        print(data)
+      except Exception as e :
+        print(f'{e}')
     time.sleep(5)
   print("All over, waiting for queue reader")
   while len(multiprocessing.active_children()) > 0 :
