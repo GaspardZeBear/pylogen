@@ -186,7 +186,7 @@ class Runner() :
         self.transactionId=f'None'
       for r in rmngr.getRequests() :
         self.reportRequest(rmngr,r,lengths[j])
-      self.scoreboard.update()
-      self.scoreboard.publish()
+      self.scoreboard.update(rmngr)
+      #self.scoreboard.publish()
       time.sleep(float(self.args.pauselen))
 
