@@ -14,11 +14,14 @@ from Runner import *
 from Defaults import *
 from MPRunner import *
 from MPQueue import *
+from OPController import *
+from OPGenerator import *
 
 #------------------------------------------------------------------------------
+# closedModel
 # Dynamically create an instance of args.action as cut and starts a runner process
 #------------------------------------------------------------------------------
-def launch(args):
+def closedModel(args):
   parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
   for i in range(0,int(args.process)) :
     logging.info(f'Launchin {args.action}')
@@ -32,6 +35,21 @@ def launch(args):
     mpRunner.daemon=True
     mpRunner.start()
     parms["delay"] += int(args.rampup) 
+
+#------------------------------------------------------------------------------
+# closedModel
+# 
+#------------------------------------------------------------------------------
+def openedModel(args):
+  parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
+  args.jobsQueue=Queue()
+  controller=OPController(args)
+  controller.daemon=False
+  controller.start()
+  generator=OPGenerator(args)
+  generator.daemon=True
+  generator.start()
+
 
 #-----------------------------------------------------
 # A scenrio is a file containing commands lines .. so loop on this file
@@ -75,6 +93,18 @@ def myParser(queue,input) :
   parser.add_argument('--id',         help="",default=Defaults.id)
   parser.add_argument('-f','--file', action="store",help="scenario")
 
+
+  # integration open model
+  parser.add_argument('--openedmodel',   help="",action="store_true")
+  parser.add_argument('--controllerDelay',   help="",default="5")
+  parser.add_argument('--generatorDelay',   help="",default="1")
+  parser.add_argument('--burst',   help="",default="1000")
+  parser.add_argument('--schedule',   help="",default="30@10,30@20,30@30")
+  parser.add_argument('--workerDelay',   help="",default="1")
+  parser.add_argument('--trigger',   help="",default="3")
+  parser.add_argument('--decrease',   help="",default="10")
+
+
   # --------
   # len(input)==0 means argparse will use sys.argv
   # else line read from file, still to be parsed
@@ -107,7 +137,10 @@ def myParser(queue,input) :
     fScenario(args)
   else :
     print(f'args : {args}')
-    launch(args)
+    if args.openedmodel :
+      openedModel(args)
+    else :
+      closedModel(args)
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
