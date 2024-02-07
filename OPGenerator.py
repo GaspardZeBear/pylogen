@@ -22,36 +22,18 @@ class OPGenerator(Process):
       for schedule in self.schedules :
         logging.info(f' {self.name} {schedule}')
         duration,thru=schedule.split('@')
+        logging.info(f' {self.name} {duration=} {thru=}')
         #now=datetime.now()
         now = time.time()
         end=now + int(duration)
-        while time.time() < end :
+        while now < end :
           time.sleep(1/float(thru))
-          #logging.info(f'{self.name} event')
+          logging.info(f'{self.name} {now=} {end=}  generates event')
           self.jobsQueue.put({"x":None})
           count += 1
+          now=time.time()
           if (count % 100) == 0 :
             logging.info(f'{self.name} {count=}')
     except Exception as e :
-      print(f'{e}')
-
-  def Xrun(self):
-    try :
-      logging.info(f'Starting {self.name} args={self.args}')
-      count=0
-      delay=self.generatorDelay
-      while True :
-        if count > self.burst :
-          delay=self.generatorDelay/2
-        if count > 2*self.burst :
-          delay=self.generatorDelay
-        time.sleep(delay)
-        #logging.info(f'{self.name} event')
-        self.jobsQueue.put({"x":None})
-        count += 1
-        if (count % 100) == 0 :
-          logging.info(f'{self.name} {count=}')
-    except Exception as e :
-      print(f'{e}')
-
+      print(f'OPGenerator {e}')
 

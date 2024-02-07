@@ -81,6 +81,15 @@ class Runner() :
       print(f'loop stopped {e}')
 
   #--------------------------------------------------------------------------------------
+  def loopQueue(self,cut) :
+    while True :
+        logging.info(f'{self.name} event')
+        work=self.args.jobsQueue.get()
+        if work is None :
+          break
+        self.loopOnLengths(cut)
+
+  #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
     for i in range(0,int(self.args.loops)) :
       self.loopOnLengths(cut)
@@ -158,8 +167,10 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def loopOnLengths(self,cut) :
+    #logging.info(f'{self.name} event called')
     lengths=[int(x) for x in re.split(',',self.args.lengths) ]
     for j in range(0,len(lengths)) :
+      #logging.info(f'{self.name} loop {j}')
       self.opCount += 1
       cut.reset()
       cut.genDatas(lengths[j])

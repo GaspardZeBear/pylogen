@@ -3,6 +3,7 @@ from multiprocessing import Process,Event,Queue
 import logging
 import time
 from OPWorker import *
+from CutLauncher import *
 
 # custom process class
 class OPController(Process):
@@ -28,9 +29,10 @@ class OPController(Process):
           delay=self.controllerDelay/10
           decrease=0
           logging.info(f'{self.name} starting Worker')
-          worker=OPWorker(self.args)
-          worker.daemon=True
-          worker.start()
+          #worker=OPWorker(self.args)
+          #worker.daemon=True
+          #worker.start()
+          CutLauncher(self.args)
         else :
           delay=self.controllerDelay
           decrease += 1

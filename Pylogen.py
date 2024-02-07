@@ -23,10 +23,10 @@ from OPGenerator import *
 #------------------------------------------------------------------------------
 def closedModel(args):
   parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
+  qualifiers=args.action.split('.')
+  obj=qualifiers[-1]
   for i in range(0,int(args.process)) :
     logging.info(f'Launchin {args.action}')
-    qualifiers=args.action.split('.')
-    obj=qualifiers[-1]
     scoreboard = SharedMemory(create=True, size=int(args.shmsize))
     parms["scoreboard"] = scoreboard
     scoreboards.append(scoreboard)
@@ -37,8 +37,7 @@ def closedModel(args):
     parms["delay"] += int(args.rampup) 
 
 #------------------------------------------------------------------------------
-# closedModel
-# 
+# openedModel
 #------------------------------------------------------------------------------
 def openedModel(args):
   parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
