@@ -11,6 +11,7 @@ class Defaults() :
   postpone="1"
   duration="5"
   loops="5"
+  prefork="10"
   rampup="5"
   pauseloop="1"
   pauselen="1"

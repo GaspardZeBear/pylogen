@@ -84,6 +84,7 @@ def myParser(queue,input) :
   parser.add_argument('--loops',      help="",default=Defaults.loops)
   parser.add_argument('--shmsize',    help="",default=Defaults.shmsize)
   parser.add_argument('--lengths',    help="",default=Defaults.lengths)
+  parser.add_argument('--prefork',    help="",default=Defaults.prefork)
   parser.add_argument('--extra',      help="",default=Defaults.extra)
   parser.add_argument('--pauseloop',  help="",default=Defaults.pauseloop)
   parser.add_argument('--pauselen',   help="",default=Defaults.pauselen)

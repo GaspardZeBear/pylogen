@@ -20,6 +20,9 @@ class OPController(Process):
   def run(self):
     try :
       logging.info(f'Starting {self.name} args={self.args}')
+      for i in range(0,int(self.args.prefork)) :
+        logging.info(f'{self.name} prefork CutLauncher {i}')
+        CutLauncher(self.args)
       decrease=0
       while True :
         qsize= self.jobsQueue.qsize()
@@ -28,7 +31,7 @@ class OPController(Process):
         if self.jobsQueue.qsize() > self.trigger :
           delay=self.controllerDelay/10
           decrease=0
-          logging.info(f'{self.name} starting Worker')
+          logging.info(f'jobQueueSize > trigger{self.name} : starting Worker')
           #worker=OPWorker(self.args)
           #worker.daemon=True
           #worker.start()

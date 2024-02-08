@@ -34,13 +34,17 @@ class Runner() :
     self.thru=0
     self.setFullId()
     self.queue=self.args.queue
+    self.name=self.args.id
     self.scoreboard=Scoreboard(self.fullId,self.parms["scoreboard"])
     now=datetime.now()
-    if int(self.args.duration) > 0 :
-      self.loopMethod=self.loopDuration
-      self.exitTime=now + timedelta(seconds=int(self.args.duration))
-    else :
-      self.loopMethod=self.loopLoop
+    if self.args.openedmodel :
+      self.loopMethod=self.loopQueue
+    else : 
+      if int(self.args.duration) > 0 :
+        self.loopMethod=self.loopDuration
+        self.exitTime=now + timedelta(seconds=int(self.args.duration))
+      else :
+        self.loopMethod=self.loopLoop
 
   #--------------------------------------------------------------------------------------
   def setTransaction(self,transaction) :
@@ -83,21 +87,24 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
     while True :
-        logging.info(f'{self.name} event')
-        work=self.args.jobsQueue.get()
-        if work is None :
-          break
-        self.loopOnLengths(cut)
+      logging.info(f'{self.name} loopQueue() waiting for event in jobQueue')
+      work=self.args.jobsQueue.get()
+      if work is None :
+        logging.info(f'{self.name} null event, exiting')
+        break
+      self.loopOnLengths(cut)
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
     for i in range(0,int(self.args.loops)) :
+      logging.info(f'{self.name} loopLoop() {i}')
       self.loopOnLengths(cut)
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
     while (datetime.now() < self.exitTime ) :
+      logging.info(f'{self.name} loopDuration() ')
       self.loopOnLengths(cut)
       time.sleep(float(self.args.pauseloop))
 
