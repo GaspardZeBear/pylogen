@@ -92,6 +92,9 @@ class Runner() :
       if work is None :
         logging.info(f'{self.name} null event, exiting')
         break
+      now=time.time() 
+      waitTime=now - work["genTime"]
+      logging.info(f'now {now} event : {work} waited {waitTime}')
       self.loopOnLengths(cut)
 
   #--------------------------------------------------------------------------------------

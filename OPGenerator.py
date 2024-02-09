@@ -2,6 +2,9 @@ import multiprocessing
 from multiprocessing import Process,Event,Queue
 import logging
 import time
+import datetime
+import logging
+from datetime import datetime,timedelta
 
 # custom process class
 class OPGenerator(Process):
@@ -29,7 +32,7 @@ class OPGenerator(Process):
         while now < end :
           time.sleep(1/float(thru))
           logging.info(f'{self.name} {now=} {end=}  generates event')
-          self.jobsQueue.put({"x":None})
+          self.jobsQueue.put({"genTime":now})
           count += 1
           now=time.time()
           if (count % 100) == 0 :

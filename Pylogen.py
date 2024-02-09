@@ -118,7 +118,7 @@ def myParser(queue,input) :
 
   loglevels=[logging.ERROR,logging.WARNING,logging.INFO,logging.DEBUG,1]
   loglevel=loglevels[args.verbose] if args.verbose < len(loglevels) else loglevels[len(loglevels) - 1]
-  logging.basicConfig(format="%(asctime)s %(module)s %(name)s  %(funcName)s %(lineno)s %(levelname)s %(message)s", level=loglevel)
+  logging.basicConfig(format="%(asctime)s pid=%(process)d %(processName)s %(threadName)s %(module)s %(name)s  %(funcName)s %(lineno)s %(levelname)s %(message)s", level=loglevel)
   logging.log(1,'Deep debug')
   args.queue=queue
   queue.setArgs(args)
