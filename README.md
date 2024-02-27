@@ -6,16 +6,22 @@ PYthon LOad GENerator
 
 ## Function
 
-A quick load injector for kms.i
+A quick experimental load injector
 
 Based on python multiprocessing module to avoid GIL effect.
 
-A run launches a main, that launches subprocess (runners) for the requred CUT (encrypt, sign)
+A run launches a main, that launches subprocess (runners, workers) for  CUT processing
 
 A CUT is a subclass of ClassUnderTest.
 
+A run may run as 
+
+- closed model processing : driver : predefined workers count
 A runner runs loops of calls to the CUT (see parameters loop, duration ...).
 The --proc parameter controls the count of runners.
+
+- opened model processing : driver : events arrivals rate dynamically creates wand adjusts workers count
+
 A CUT executes requests that may be embedded in transactions.
 
 Stats are displayed on STDIN.
@@ -61,20 +67,39 @@ Note : if "scenario", none of the following are usable, except --file
 
 <br>
 -v : verbosity -vv _vvv ....  <br>
---process PROCESS : number of process (to set in accordance with the expected load and the capacities of the server<br>
 --postpone POSTPONE : postpones the start of the run (permits to shape a load)<br>
 --rampup RAMPUP : time between each process start <br>
---duration DURATION : duration of the process (vs loops). Prioritary <br>
---loops LOOPS : how many loops per process<br>
 --lengths LENGTHS : array of lengths (for exemple). Loop on length in a loop execution<br>
 --extra EXTRA : parameters for plugins <br>
---pauseloop PAUSELOOP : pause between loops  <br>
 --pauselen PAUSELEN :  pause between lengths<br>
 --summary SUMMARY : time between 2 summary computations <br>
 --outformat OUTFORMAT : csv (short) of anything (long) <br>
 --id ID : an arbitrary ID
 
 --file FILE : name of scenario file
+
+### Closed model
+
+By default, closed model : a predefined number of worker process running cuts is given 
+
+--process PROCESS : number of process (to set in accordance with the expected load and the capacities of the server<br>
+--duration DURATION : duration of the process (vs loops). Prioritary <br>
+--loops LOOPS : how many loops per process<br>
+--pauseloop PAUSELOOP : pause between loops  <br>
+
+### Opened model 
+
+Opened model : a generator generates events at a given frequency.
+These events are processed by workers
+A controller adjusts the number of worker to process as quick as possible
+
+--openedmodel : use openedmodel
+--controllerDelay : frequency for the controller to adjust number of process 
+--generatorDelay : ?
+--sechedule : schedule : example 30@10,20@15 : during 30 seconds generate 10 runs/second then during 20 seconds 15 runs/second
+--trigger : if more than trigger events in the jobqueue, start a new worker
+--prefork : number of workers to start before generation begins
+--decrease : ?
 
 ### Scenario 
 
@@ -109,7 +134,7 @@ Put them in cuts directory !!!
 - CUT should be written with @Executor.exec decorator
 
 
-### Kms cuts options : extra
+### cuts options : extra
 
 Options are a json string in --extra with 2 keys :
 - file : name of a json file containing keys definition. Optionnal : default KmsDefault.json
