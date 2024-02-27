@@ -14,6 +14,8 @@ class OPGenerator(Process):
     self.name="Generator"
     self.args=args
     self.jobsQueue=self.args.jobsQueue
+    self.controllerQueue=self.args.controllerQueue
+    self.generatorQueue=self.args.generatorQueue
     self.generatorDelay=float(self.args.generatorDelay)
     self.schedules=self.args.schedule.split(',')
 
@@ -22,6 +24,8 @@ class OPGenerator(Process):
     try :
       logging.info(f'Starting {self.name} args={self.args}')
       count=0
+      msg=self.generatorQueue.get()
+      logging.info(f'Got go from {msg}')
       for schedule in self.schedules :
         logging.info(f' {self.name} {schedule}')
         duration,thru=schedule.split('@')
@@ -31,12 +35,15 @@ class OPGenerator(Process):
         end=now + int(duration)
         while now < end :
           time.sleep(1/float(thru))
-          logging.info(f'{self.name} {now=} {end=}  generates event')
+          logging.debug(f'{self.name} {now=} {end=}  generates event')
           self.jobsQueue.put({"genTime":now})
           count += 1
+          self.controllerQueue.put({"from":"generator","msg":"event","count":count})
           now=time.time()
           if (count % 100) == 0 :
-            logging.info(f'{self.name} {count=}')
+            logging.info(f'{self.name} generated {count=} events')
+      logging.info(f'{self.name} generator ended generated {count=} events')
+      self.controllerQueue.put({"from":"generator","msg":"over","count":count})
     except Exception as e :
       print(f'OPGenerator {e}')
 

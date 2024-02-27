@@ -42,6 +42,8 @@ def closedModel(args):
 def openedModel(args):
   parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
   args.jobsQueue=Queue()
+  args.controllerQueue=Queue()
+  args.generatorQueue=Queue()
   controller=OPController(args)
   controller.daemon=False
   controller.start()

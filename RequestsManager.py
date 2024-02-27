@@ -14,7 +14,7 @@ class RequestsManager() :
     self.rc=-1
     self.duration=0
     self.elapsed=0
-    logging.warning(f" requestsManager {self.name} created")
+    logging.debug(f" requestsManager {self.name} created")
 
   #------------------------------------------------------------------------
   def newRequest(self,name) :
@@ -59,7 +59,7 @@ class RequestsManager() :
   def getDuration(self) :
     self.duration=0
     for r in self.requests :
-      logging.warning(f'{r} {r.getDuration()}')
+      logging.debug(f'{r} {r.getDuration()}')
       self.duration += r.getDuration()
     return(self.duration)
 

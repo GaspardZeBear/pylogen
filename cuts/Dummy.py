@@ -14,8 +14,8 @@ class Dummy(ClassUnderTest) :
 
   #-------------------------------------------------------------------
   def __init__(self,args,parms) :
-    logging.info("Dummy starting")
-    logging.info(f'args={args} parms={parms}')
+    logging.debug("Dummy starting")
+    logging.debug(f'args={args} parms={parms}')
     super().__init__(args,parms)
     self.parms=parms
     self.args=args
@@ -36,7 +36,7 @@ class Dummy(ClassUnderTest) :
 
   #-------------------------------------------------------------------
   def func(self) :
-    logging.info("Dummy func() called")
+    logging.debug("Dummy func() called")
     self.count += 1
     #self.requestsManager=RequestsManager("KMSDUMMY")
     if "transaction" in self.extra :
@@ -50,17 +50,17 @@ class Dummy(ClassUnderTest) :
       else :
         self.runDummyExecutor(self.requestsManager.newRequest('R0'))
     self.requestsManager.close()
-    logging.info("Dummy func() ending")
+    logging.debug("Dummy func() ending")
 
   #-------------------------------------------------------------------
   @Executor.exec
   def runDummyExecutor(self,pSleep=None) :
-    logging.info("Dummy runDummyExecutor() called")
+    logging.debug("Dummy runDummyExecutor() called")
     sleep=self.sleep
     if pSleep is not None :
       sleep=pSleep      
     time.sleep(float(sleep))
-    logging.info("Dummy runDummyExecutor() ending")
+    logging.debug("Dummy runDummyExecutor() ending")
 
   #-------------------------------------------------------------------
   def runDummyExecutorError(self):

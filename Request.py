@@ -15,7 +15,7 @@ class Request() :
     self.duration=0
     self.error=None
     self.rc=-1
-    logging.warning(f" request {self.name} created")
+    logging.debug(f" request {self.name} created")
 
   #------------------------------------------------------------------------
   def launch(self) :

@@ -118,13 +118,16 @@ class MPQueue(Process):
             f' {self.opCount:8d} {self.thru:9.2f}'
             f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
             f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+            f'\n'
            ))
     else : 
       self.jtlFile.write((f'{m["time"][:-3]} typ {m["type"]:8s}'
             f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
             f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
             f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+            f'\n'
            ))
+    self.jtlFile.flush()
    
    
   #---------------------------------------------------------------------------------------------

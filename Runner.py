@@ -34,6 +34,7 @@ class Runner() :
     self.thru=0
     self.setFullId()
     self.queue=self.args.queue
+    self.controllerQueue=self.args.controllerQueue
     self.name=self.args.id
     self.scoreboard=Scoreboard(self.fullId,self.parms["scoreboard"])
     now=datetime.now()
@@ -87,14 +88,15 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
     while True :
-      logging.info(f'{self.name} loopQueue() waiting for event in jobQueue')
+      logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
       work=self.args.jobsQueue.get()
       if work is None :
         logging.info(f'{self.name} null event, exiting')
         break
       now=time.time() 
       waitTime=now - work["genTime"]
-      logging.info(f'now {now} event : {work} waited {waitTime}')
+      logging.debug(f'now {now} event : {work} waited {waitTime}')
+      self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
       self.loopOnLengths(cut)
 
   #--------------------------------------------------------------------------------------

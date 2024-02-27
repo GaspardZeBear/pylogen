@@ -1,5 +1,6 @@
 import multiprocessing
 from multiprocessing import Process,Event,Queue
+from queue import Empty
 import logging
 import time
 from OPWorker import *
@@ -13,6 +14,8 @@ class OPController(Process):
     self.name="Controller"
     self.args=args
     self.jobsQueue=self.args.jobsQueue
+    self.controllerQueue=self.args.controllerQueue
+    self.generatorQueue=self.args.generatorQueue
     self.controllerDelay=float(self.args.controllerDelay)
     self.trigger=int(self.args.trigger)
     self.decrease=int(self.args.decrease)
@@ -21,13 +24,31 @@ class OPController(Process):
     try :
       logging.info(f'Starting {self.name} args={self.args}')
       for i in range(0,int(self.args.prefork)) :
-        logging.info(f'{self.name} prefork CutLauncher {i}')
+        logging.info(f'{self.name} prefork worker {i}')
         CutLauncher(self.args)
       decrease=0
-      while True :
+      eventGenerated=0
+      eventProcessed=0
+      generatorOver=False
+      self.generatorQueue.put({"from":"controller","msg":"go"})
+      #while True :
+      while not generatorOver or ( eventGenerated > eventProcessed)  :
+        try:
+         msg=self.controllerQueue.get(False)
+         logging.debug(f'Controller got {msg} in controllerQueue')
+         if msg["from"] == "generator" and msg["msg"] == "over" :
+           generatorOver=True
+         elif msg["from"] == "generator" and msg["msg"] == "event" :
+           eventGenerated += 1
+         elif msg["from"] == "worker" and msg["msg"] == "event" :
+           eventProcessed += 1
+         else :
+           logging.debug(f'Controller ignoring {msg} in controllerQueue')
+        except Empty:
+          logging.debug(f'Controller got nothing in controllerQueue')
         qsize= self.jobsQueue.qsize()
         children=multiprocessing.active_children()
-        logging.info(f'{self.name} {qsize=} children {len(children)}')
+        logging.info(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed}')
         if self.jobsQueue.qsize() > self.trigger :
           delay=self.controllerDelay/10
           decrease=0

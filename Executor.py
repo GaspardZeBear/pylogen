@@ -11,8 +11,8 @@ class Executor() :
     #--- Lots of Ugly things to be improved
     #---------------------------------------------------------------------------------------
     def wrapper(*args,**kwargs) :
-      logging.warning(f'wrapper args {args}')
-      logging.warning(f'wrapper kwargs {kwargs}')
+      logging.debug(f'wrapper args {args} kwargs {kwargs}')
+      #logging.warning(f'wrapper kwargs {kwargs}')
       #logging.warning(f'type {type(args[0])}')
       if isinstance(args[0],Request) :
         #logging.warning("Direct call")
