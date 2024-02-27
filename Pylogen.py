@@ -21,10 +21,12 @@ from OPGenerator import *
 # closedModel
 # Dynamically create an instance of args.action as cut and starts a runner process
 #------------------------------------------------------------------------------
-def closedModel(args):
-  parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
+def closedModel(args,resultQueue):
+  parms={"queue":resultQueue,'scoreboard':None,"delay":int(args.postpone)}
   qualifiers=args.action.split('.')
   obj=qualifiers[-1]
+  parms["controllerQueue"]=None
+  parms["generatorQueue"]=None
   for i in range(0,int(args.process)) :
     logging.info(f'Launchin {args.action}')
     scoreboard = SharedMemory(create=True, size=int(args.shmsize))
@@ -39,15 +41,15 @@ def closedModel(args):
 #------------------------------------------------------------------------------
 # openedModel
 #------------------------------------------------------------------------------
-def openedModel(args):
-  parms={"queue":'','scoreboard':None,"delay":int(args.postpone)}
-  args.jobsQueue=Queue()
-  args.controllerQueue=Queue()
-  args.generatorQueue=Queue()
-  controller=OPController(args)
+def openedModel(args,resultQueue):
+  parms={"queue":resultQueue,'scoreboard':None,"delay":int(args.postpone)}
+  parms["jobsQueue"]=Queue()
+  parms["controllerQueue"]=Queue()
+  parms["generatorQueue"]=Queue()
+  controller=OPController(args,parms)
   controller.daemon=False
   controller.start()
-  generator=OPGenerator(args)
+  generator=OPGenerator(args,parms)
   generator.daemon=True
   generator.start()
 
@@ -140,9 +142,9 @@ def myParser(queue,input) :
   else :
     print(f'args : {args}')
     if args.openedmodel :
-      openedModel(args)
+      openedModel(args,args.queue)
     else :
-      closedModel(args)
+      closedModel(args,args.queue)
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":

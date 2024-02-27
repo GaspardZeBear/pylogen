@@ -8,14 +8,15 @@ from CutLauncher import *
 
 # custom process class
 class OPController(Process):
-  def __init__(self,args) :
+  def __init__(self,args,parms) :
     Process.__init__(self)
     self.exit = multiprocessing.Event()
     self.name="Controller"
     self.args=args
-    self.jobsQueue=self.args.jobsQueue
-    self.controllerQueue=self.args.controllerQueue
-    self.generatorQueue=self.args.generatorQueue
+    self.parms=parms
+    self.jobsQueue=self.parms["jobsQueue"]
+    self.controllerQueue=self.parms["controllerQueue"]
+    self.generatorQueue=self.parms["generatorQueue"]
     self.controllerDelay=float(self.args.controllerDelay)
     self.trigger=int(self.args.trigger)
     self.decrease=int(self.args.decrease)
@@ -25,30 +26,33 @@ class OPController(Process):
       logging.info(f'Starting {self.name} args={self.args}')
       for i in range(0,int(self.args.prefork)) :
         logging.info(f'{self.name} prefork worker {i}')
-        CutLauncher(self.args)
+        CutLauncher(self.args,self.parms)
       decrease=0
       eventGenerated=0
       eventProcessed=0
+      waitTime=-1
       generatorOver=False
       self.generatorQueue.put({"from":"controller","msg":"go"})
       #while True :
       while not generatorOver or ( eventGenerated > eventProcessed)  :
         try:
-         msg=self.controllerQueue.get(False)
-         logging.debug(f'Controller got {msg} in controllerQueue')
-         if msg["from"] == "generator" and msg["msg"] == "over" :
-           generatorOver=True
-         elif msg["from"] == "generator" and msg["msg"] == "event" :
-           eventGenerated += 1
-         elif msg["from"] == "worker" and msg["msg"] == "event" :
-           eventProcessed += 1
-         else :
-           logging.debug(f'Controller ignoring {msg} in controllerQueue')
+          while True :
+            msg=self.controllerQueue.get(False)
+            logging.debug(f'Controller got {msg} in controllerQueue')
+            if msg["from"] == "generator" and msg["msg"] == "over" :
+              generatorOver=True
+            elif msg["from"] == "generator" and msg["msg"] == "event" :
+              eventGenerated += 1
+            elif msg["from"] == "worker" and msg["msg"] == "event" :
+              eventProcessed += 1
+              waitTime = msg["wait"]
+            else :
+              logging.debug(f'Controller ignoring {msg} in controllerQueue')
         except Empty:
           logging.debug(f'Controller got nothing in controllerQueue')
         qsize= self.jobsQueue.qsize()
         children=multiprocessing.active_children()
-        logging.info(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed}')
+        logging.info(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed} last waitTime {waitTime}')
         if self.jobsQueue.qsize() > self.trigger :
           delay=self.controllerDelay/10
           decrease=0
@@ -56,7 +60,7 @@ class OPController(Process):
           #worker=OPWorker(self.args)
           #worker.daemon=True
           #worker.start()
-          CutLauncher(self.args)
+          CutLauncher(self.args,self.parms)
         else :
           delay=self.controllerDelay
           decrease += 1

@@ -33,8 +33,8 @@ class Runner() :
     self.stopTimem1=self.stopTime
     self.thru=0
     self.setFullId()
-    self.queue=self.args.queue
-    self.controllerQueue=self.args.controllerQueue
+    self.queue=self.parms["queue"]
+    self.controllerQueue=self.parms["controllerQueue"]
     self.name=self.args.id
     self.scoreboard=Scoreboard(self.fullId,self.parms["scoreboard"])
     now=datetime.now()

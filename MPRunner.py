@@ -9,6 +9,7 @@ from ClassUnderTest import *
 class MPRunner(Process):
   def __init__(self,args,parms,cut) :
     logging.debug(f'MPRunner init() args={args} ')
+    logging.debug(f'MPRunner init() parms={parms} ')
     Process.__init__(self)
     self.exit = multiprocessing.Event()
     self.args=args

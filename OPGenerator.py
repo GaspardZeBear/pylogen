@@ -8,14 +8,14 @@ from datetime import datetime,timedelta
 
 # custom process class
 class OPGenerator(Process):
-  def __init__(self,args) :
+  def __init__(self,args,parms) :
     Process.__init__(self)
     self.exit = multiprocessing.Event()
     self.name="Generator"
     self.args=args
-    self.jobsQueue=self.args.jobsQueue
-    self.controllerQueue=self.args.controllerQueue
-    self.generatorQueue=self.args.generatorQueue
+    self.jobsQueue=self.parms.jobsQueue
+    self.controllerQueue=self.parms["controllerQueue"]
+    self.generatorQueue=self.parms["generatorQueue"]
     self.generatorDelay=float(self.args.generatorDelay)
     self.schedules=self.args.schedule.split(',')
 
