@@ -25,6 +25,7 @@ class MPRunner(Process):
   def run(self):
     try :
       logging.debug(f'Starting {self.name} args={self.args} parms={self.parms}')
+      self.parms["queue"].putQueue({"type":"runner","action":"start","cut":self.parms["childClassName"]})
       time.sleep(self.parms["delay"])
       logging.debug(f'Creating runner')
       runner=Runner(self.args,self.parms)
@@ -32,6 +33,7 @@ class MPRunner(Process):
       self.parms["runner"]=runner
       self.cut.setRunner(runner)
       runner.loop(self.cut)
+      self.parms["queue"].putQueue({"type":"runner","action":"end","cut":self.parms["childClassName"]})
       logging.debug(f'End of {self.name} args={self.args} parms={self.parms}')
       self.exit.set()
     except KeyboardInterrupt:

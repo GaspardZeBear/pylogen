@@ -27,6 +27,7 @@ def closedModel(args,resultQueue):
   obj=qualifiers[-1]
   parms["controllerQueue"]=None
   parms["generatorQueue"]=None
+  parms["scoreboards"] = scoreboards
   for i in range(0,int(args.process)) :
     logging.info(f'Launchin {args.action}')
     scoreboard = SharedMemory(create=True, size=int(args.shmsize))
@@ -171,8 +172,12 @@ if __name__ == "__main__":
       except Exception as e :
         print(f'{e}')
     time.sleep(5)
-  print("All over, waiting for queue reader")
+  print("Start waiting for queue reader")
   while len(multiprocessing.active_children()) > 0 :
     print("Waiting for queue reader")
     time.sleep(1)
+  print(f"Start close and unlink scoreboards {scoreboards}")
+  for scoreboard in scoreboards :
+    scoreboard.close()
+    scoreboard.unlink()
   sys.exit()

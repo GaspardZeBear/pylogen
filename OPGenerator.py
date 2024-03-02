@@ -13,7 +13,8 @@ class OPGenerator(Process):
     self.exit = multiprocessing.Event()
     self.name="Generator"
     self.args=args
-    self.jobsQueue=self.parms.jobsQueue
+    self.parms=parms
+    self.jobsQueue=self.parms["jobsQueue"]
     self.controllerQueue=self.parms["controllerQueue"]
     self.generatorQueue=self.parms["generatorQueue"]
     self.generatorDelay=float(self.args.generatorDelay)

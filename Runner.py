@@ -89,7 +89,7 @@ class Runner() :
   def loopQueue(self,cut) :
     while True :
       logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
-      work=self.args.jobsQueue.get()
+      work=self.parms["jobsQueue"].get()
       if work is None :
         logging.info(f'{self.name} null event, exiting')
         break
@@ -98,6 +98,7 @@ class Runner() :
       logging.debug(f'now {now} event : {work} waited {waitTime}')
       self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
       self.loopOnLengths(cut)
+    self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
@@ -105,6 +106,7 @@ class Runner() :
       logging.info(f'{self.name} loopLoop() {i}')
       self.loopOnLengths(cut)
       time.sleep(float(self.args.pauseloop))
+    self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
@@ -112,6 +114,7 @@ class Runner() :
       logging.info(f'{self.name} loopDuration() ')
       self.loopOnLengths(cut)
       time.sleep(float(self.args.pauseloop))
+    self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------
   def sendError(self,e) :

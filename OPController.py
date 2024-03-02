@@ -29,6 +29,7 @@ class OPController(Process):
         CutLauncher(self.args,self.parms)
       decrease=0
       eventGenerated=0
+      eventGeneratedSignaled=0
       eventProcessed=0
       waitTime=-1
       generatorOver=False
@@ -36,7 +37,10 @@ class OPController(Process):
       #while True :
       while not generatorOver or ( eventGenerated > eventProcessed)  :
         try:
-          while True :
+          loops = 0
+          #while True :
+          while loops < self.trigger  :
+            loops += 1
             msg=self.controllerQueue.get(False)
             logging.debug(f'Controller got {msg} in controllerQueue')
             if msg["from"] == "generator" and msg["msg"] == "over" :
@@ -52,7 +56,10 @@ class OPController(Process):
           logging.debug(f'Controller got nothing in controllerQueue')
         qsize= self.jobsQueue.qsize()
         children=multiprocessing.active_children()
-        logging.info(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed} last waitTime {waitTime}')
+        #logging.info(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed} last waitTime {waitTime}')
+        if (eventGenerated % 10 == 0) and (eventGenerated > eventGeneratedSignaled ):
+          eventGeneratedSignaled = eventGenerated
+          print(f'{self.name} {qsize=} children {len(children)} eventGenerated {eventGenerated} eventProcessed {eventProcessed} last waitTime {waitTime}')
         if self.jobsQueue.qsize() > self.trigger :
           delay=self.controllerDelay/10
           decrease=0

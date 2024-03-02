@@ -36,6 +36,14 @@ class Scoreboard() :
     boardLen=len(boardAsBytes).to_bytes(4,byteorder='big')
     self.shm.buf[0:4]=boardLen
     self.shm.buf[4:len(boardAsBytes)+4]=boardAsBytes
-    #self.shm.close()
+
+  def close(self) :
+    print(f"close {self.shm}")
+    self.shm.close()
+
+  def unlink(self) :
+    print(f"unlinking {self.shm}")
+    self.shm.unlink()
+
 
 

@@ -99,7 +99,7 @@ A controller adjusts the number of worker to process as quick as possible
 --sechedule : schedule : example 30@10,20@15 : during 30 seconds generate 10 runs/second then during 20 seconds 15 runs/second
 --trigger : if more than trigger events in the jobqueue, start a new worker
 --prefork : number of workers to start before generation begins
---decrease : ?
+--decrease : number of consecutive times the controller found no job in queue : then kills a worker to spare resources
 
 ### Scenario 
 

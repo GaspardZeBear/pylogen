@@ -24,6 +24,9 @@ class MPQueue(Process):
     self.opThresh=100
     self.summary=100
     self.thru=0
+    self.startedCuts=0
+    self.endedCuts=0
+    self.activeCuts=0
     self.queueHwm=0
     self.thruHwm=0
     self.queueHwmTime=datetime.datetime.now()
@@ -79,6 +82,8 @@ class MPQueue(Process):
 
   #---------------------------------------------------------------------------------------------
   def processMsg(self,m) :
+    now=datetime.datetime.now()
+    m["queueNow"]=now
     if "type" in m :
       if  m["type"] == "report" :
         if  m["nature"] == "req" :
@@ -107,6 +112,17 @@ class MPQueue(Process):
             self.opThresh=int(t[2])
         if m["cmd"] == "stop" :
           self.over()
+      elif m["type"] == "runner" :
+        if  m["action"] == "start" :
+          print(f'msg {m}')
+          self.startedCuts += 1
+          self.activeCuts += 1
+        elif  m["action"] == "end" :
+          print(f'msg {m}')
+          self.endedCuts += 1
+          self.activeCuts -= 1
+        else :
+          pass
     else :
        print(f'{m}',file=sys.stderr) 
 
@@ -116,32 +132,20 @@ class MPQueue(Process):
     if self.args.outformat == 'short' :
       self.jtlFile.write((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
             f' {self.opCount:8d} {self.thru:9.2f}'
+            f' {self.startedCuts:8d} {self.endedCuts:8d} {self.activeCuts:8d}'
             f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
             f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
             f'\n'
            ))
+    elif self.args.outformat == 'raw' :
+      self.jtlFile.write((f"{m}\n"))
     else : 
       self.jtlFile.write((f'{m["time"][:-3]} typ {m["type"]:8s}'
             f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
+            f' sta {self.startedCuts:8d} end {self.endedCuts:8d} act {self.activeCuts:8d}'
             f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
             f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
             f'\n'
            ))
     self.jtlFile.flush()
-   
-   
-  #---------------------------------------------------------------------------------------------
-  def Xout(self,m) :
-    if self.args.outformat == 'short' :
-      print((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
-            f' {self.opCount:8d} {self.thru:9.2f}'
-            f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
-            f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
-           ))
-    else : 
-      print((f'{m["time"][:-3]} typ {m["type"]:8s}'
-            f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
-            f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
-            f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
-           ))
    
