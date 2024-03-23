@@ -79,6 +79,7 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loop(self,cut) :
     try :
+      print(f'loop() called, will trigger self.loopMethod {self.loopMethod}')
       self.loopMethod(cut)
     except KeyboardInterrupt:
       print("Caught KeyboardInterrupt, terminating loop")
@@ -87,6 +88,7 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
+    logging.info(f'{self.name} loopQueue() starting ')
     while True :
       logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
       work=self.parms["jobsQueue"].get()
@@ -96,8 +98,12 @@ class Runner() :
       now=time.time() 
       waitTime=now - work["genTime"]
       logging.debug(f'now {now} event : {work} waited {waitTime}')
-      self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
+      print(f'{self.name} loopQueue() will process {waitTime=}')
+      self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'busy'})
       self.loopOnLengths(cut)
+      self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
+      logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
+      self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
     self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------

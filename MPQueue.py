@@ -114,17 +114,17 @@ class MPQueue(Process):
           self.over()
       elif m["type"] == "runner" :
         if  m["action"] == "start" :
-          print(f'msg {m}')
+          logging.info(f'msg {m}')
           self.startedCuts += 1
           self.activeCuts += 1
         elif  m["action"] == "end" :
-          print(f'msg {m}')
+          logging.info(f'msg {m}')
           self.endedCuts += 1
           self.activeCuts -= 1
         else :
           pass
     else :
-       print(f'{m}',file=sys.stderr) 
+       logging.info(f'{m}',file=sys.stderr) 
 
    
   #---------------------------------------------------------------------------------------------

@@ -36,9 +36,9 @@ class OPGenerator(Process):
         end=now + int(duration)
         while now < end :
           time.sleep(1/float(thru))
-          logging.debug(f'{self.name} {now=} {end=}  generates event')
-          self.jobsQueue.put({"genTime":now})
           count += 1
+          logging.debug(f'{self.name} {now=} {end=}  generates event {count=}')
+          self.jobsQueue.put({"genTime":now})
           self.controllerQueue.put({"from":"generator","msg":"event","count":count})
           now=time.time()
           if (count % 100) == 0 :

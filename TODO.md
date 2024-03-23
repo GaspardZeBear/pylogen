@@ -8,7 +8,6 @@ TODO list
 - get uniform messages format in queues
 - resultQueue message is messy
 
-- scoreboard not compatible with opened model ?  
-- release shared memory
+- remove scoreboards, repalce wit queuin between process
 
 - script to analyze resultFile
