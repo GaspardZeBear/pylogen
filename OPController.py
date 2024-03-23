@@ -32,6 +32,18 @@ class OPController(Process):
         workersStartedSum += 1
         workersRunningCount = workersStartedSum - workersStoppedSum
         CutLauncher(self.args,self.parms)
+
+      # waiting all preforked CUTs ready
+      readyCount=0 
+      while readyCount < int(self.args.prefork) :
+        logging.warning(f'Controller waiting for ready, current {readyCount=}')
+        msg=self.controllerQueue.get(True,self.controllerDelay)
+        if msg["from"] == "worker" and msg["msg"] == "ready" :
+          readyCount += 1
+        else : 
+          logging.warning(f'Controller discarding {msg} in controllerQueue')
+
+      logging.warning(f'Controller got all preforked workers {readyCount=}')
       decrease=0
       eventGenerated=0
       eventGeneratedSignaled=0
@@ -41,6 +53,7 @@ class OPController(Process):
       busyWorkersCount=0
       waitTime=-1
       generatorOver=False
+      logging.warning(f'Controller giving go to generator')
       self.generatorQueue.put({"from":"controller","msg":"go"})
       #while True :
       while not generatorOver or ( eventGenerated > eventProcessed)  :

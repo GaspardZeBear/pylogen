@@ -89,6 +89,7 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
     logging.info(f'{self.name} loopQueue() starting ')
+    self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'ready'})
     while True :
       logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
       work=self.parms["jobsQueue"].get()
@@ -105,6 +106,7 @@ class Runner() :
       logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
     self.scoreboard.close()
+    self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'terminated'})
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
