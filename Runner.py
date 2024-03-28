@@ -79,7 +79,7 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loop(self,cut) :
     try :
-      print(f'loop() called, will trigger self.loopMethod {self.loopMethod}')
+      logging.debug(f'loop() called, will trigger self.loopMethod {self.loopMethod}')
       self.loopMethod(cut)
     except KeyboardInterrupt:
       print("Caught KeyboardInterrupt, terminating loop")
@@ -96,23 +96,38 @@ class Runner() :
       if work is None :
         logging.info(f'{self.name} null event, exiting')
         break
+      self.sendWorkersActivityStats(1)
       now=time.time() 
       waitTime=now - work["genTime"]
       logging.debug(f'now {now} event : {work} waited {waitTime}')
-      print(f'{self.name} loopQueue() will process {waitTime=}')
+      #print(f'{self.name} loopQueue() will process {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'busy'})
       self.loopOnLengths(cut)
       self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
       logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
+      self.sendWorkersActivityStats(-1)
     self.scoreboard.close()
+    logging.info(f'{self.name} loopQueue() terminated ')
     self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'terminated'})
+
+  #----------------------------------------------------------------------
+  def sendWorkersActivityStats(self,count) :
+    activity={
+        "type" : "activity",
+        "from" : "worker",
+        "id" : self.id,
+        "busyWorkers" : count
+    }
+    self.queue.putQueue(activity)
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
     for i in range(0,int(self.args.loops)) :
+      self.sendWorkersActivityStats(1) 
       logging.info(f'{self.name} loopLoop() {i}')
       self.loopOnLengths(cut)
+      self.sendWorkersActivityStats(-1) 
       time.sleep(float(self.args.pauseloop))
     self.scoreboard.close()
 
@@ -120,7 +135,9 @@ class Runner() :
   def loopDuration(self,cut) :
     while (datetime.now() < self.exitTime ) :
       logging.info(f'{self.name} loopDuration() ')
+      self.sendWorkersActivityStats(1) 
       self.loopOnLengths(cut)
+      self.sendWorkersActivityStats(-1)
       time.sleep(float(self.args.pauseloop))
     self.scoreboard.close()
 

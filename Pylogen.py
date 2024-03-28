@@ -22,6 +22,7 @@ from OPGenerator import *
 # Dynamically create an instance of args.action as cut and starts a runner process
 #------------------------------------------------------------------------------
 def closedModel(args,resultQueue):
+  logging.warning(f'Launching {args.action}')
   parms={"queue":resultQueue,'scoreboard':None,"delay":int(args.postpone)}
   qualifiers=args.action.split('.')
   obj=qualifiers[-1]
@@ -29,7 +30,7 @@ def closedModel(args,resultQueue):
   parms["generatorQueue"]=None
   parms["scoreboards"] = scoreboards
   for i in range(0,int(args.process)) :
-    logging.info(f'Launchin {args.action}')
+    logging.info(f'Launching {args.action}')
     scoreboard = SharedMemory(create=True, size=int(args.shmsize))
     parms["scoreboard"] = scoreboard
     scoreboards.append(scoreboard)
@@ -43,6 +44,8 @@ def closedModel(args,resultQueue):
 # openedModel
 #------------------------------------------------------------------------------
 def openedModel(args,resultQueue):
+  logging.warning(f'Launching {args.action}')
+  print(f'Launching {args.action}')
   parms={"queue":resultQueue,'scoreboard':None,"delay":int(args.postpone)}
   parms["jobsQueue"]=Queue()
   parms["controllerQueue"]=Queue()
@@ -123,8 +126,16 @@ def myParser(queue,input) :
 
   loglevels=[logging.ERROR,logging.WARNING,logging.INFO,logging.DEBUG,1]
   loglevel=loglevels[args.verbose] if args.verbose < len(loglevels) else loglevels[len(loglevels) - 1]
-  logging.basicConfig(format="%(asctime)s pid=%(process)d %(processName)s %(threadName)s %(module)s %(name)s  %(funcName)s %(lineno)s %(levelname)s %(message)s", level=loglevel)
+  print(f'Loglevel {loglevel=} will call logging.basicConfig')
+  logging.basicConfig(force=True,format="%(asctime)s pid=%(process)d %(processName)s %(threadName)s %(module)s %(name)s  %(funcName)s %(lineno)s %(levelname)s %(message)s", level=loglevel)
+  print(f'Loglevel {loglevel=}  called logging.basicConfig')
   logging.log(1,'Deep debug')
+
+  logging.critical(f'{loglevel=}')
+  logging.warning(f'{loglevel=}')
+  logging.info(f'{loglevel=}')
+  logging.debug(f'{loglevel=}')
+
   args.queue=queue
   queue.setArgs(args)
   # ---------------------------------------------------------------------------------------------

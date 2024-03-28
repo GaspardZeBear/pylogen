@@ -15,6 +15,7 @@ class MPQueue(Process):
   def __init__(self,args,parms) :
     Process.__init__(self)
     self.exit = multiprocessing.Event()
+    logging.info(f'Queue Reader __init__ queue {self}')
     #atexit.register(self.over)
     #atexit.register(self.oh)
     self.args=args
@@ -27,6 +28,8 @@ class MPQueue(Process):
     self.startedCuts=0
     self.endedCuts=0
     self.activeCuts=0
+    self.runningWorkers=0
+    self.busyWorkers=0
     self.queueHwm=0
     self.thruHwm=0
     self.queueHwmTime=datetime.datetime.now()
@@ -35,7 +38,7 @@ class MPQueue(Process):
     self.jtlFile=open(self.jtlName,"w")
     self.last=time.time()
     self.queue=Queue()
-    #print(f'Queue Reader created queue {self}')
+    logging.info(f'Queue Reader created queue {self}')
 
   #---------------------------------------------------------------------------------------------
   def setArgs(self,args):
@@ -52,7 +55,8 @@ class MPQueue(Process):
 
   #---------------------------------------------------------------------------------------------
   def run(self):
-    logging.info(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
+    print(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
+    logging.warning(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
     self.last=time.time()
     while True :
       try :
@@ -81,44 +85,69 @@ class MPQueue(Process):
     sys.exit()
 
   #---------------------------------------------------------------------------------------------
+  def processReportMsg(self,m) :
+    #print(f'processReportMsg() starting {m}')
+    if  m["nature"] == "req" :
+      self.opCount += 1
+    now=time.time()
+    interval=now - self.last
+    if (interval > self.opThresh) :
+      self.thru = (self.opCount - self.opCountLast) / interval
+      self.last=now
+      self.opCountLast=self.opCount
+      if self.thru > self.thruHwm : 
+        self.thruHwm = self.thru
+        self.thruHwmTime = datetime.datetime.now()
+    if m["_qSize"] > self.queueHwm : 
+      self.queueHwm = m["_qSize"]
+      self.queueHwmTime = datetime.datetime.now()
+    #print(f'processReportMsg() ending {m}')
+    self.out(m)
+
+  #---------------------------------------------------------------------------------------------
+  def processCmdMsg(self,m) :
+    if m["cmd"].startswith("set ") :
+      t=m["cmd"].split()
+      #print(f'{t}')
+      if t[1] == "summary" :
+        #print(f'setting summary cal {self.opCount} {self.opThresh}')
+        self.opThresh=int(t[2])
+    if m["cmd"] == "stop" :
+      self.over()
+
+  #---------------------------------------------------------------------------------------------
+  def processActivityMsg(self,m) :
+     if "id" in m :
+       if "runningWorkers" in m : 
+         self.runningWorkers += m["runningWorkers"]
+       elif "busyWorkers" in m :
+         self.busyWorkers += m["busyWorkers"] 
+       logging.info(f'{self.busyWorkers=} {self.runningWorkers=}')
+     else :
+       logging.error("No pid on activity message {m}")
+
+#---------------------------------------------------------------------------------------------
   def processMsg(self,m) :
     now=datetime.datetime.now()
     m["queueNow"]=now
+    logging.warning(f'Got msg {m}') 
     if "type" in m :
       if  m["type"] == "report" :
-        if  m["nature"] == "req" :
-          self.opCount += 1
-        now=time.time()
-        interval=now - self.last
-        if (interval > self.opThresh) :
-          self.thru = (self.opCount - self.opCountLast) / interval
-          self.last=now
-          self.opCountLast=self.opCount
-          if self.thru > self.thruHwm : 
-            self.thruHwm = self.thru
-            self.thruHwmTime = datetime.datetime.now()
-        if m["_qSize"] > self.queueHwm : 
-          self.queueHwm = m["_qSize"]
-          self.queueHwmTime = datetime.datetime.now()
-        self.out(m)
+        self.processReportMsg(m)
       elif m["type"] == "error" :
         print(f'{m}',file=sys.stderr) 
       elif m["type"] == "cmd" :
-        if m["cmd"].startswith("set ") :
-          t=m["cmd"].split()
-          #print(f'{t}')
-          if t[1] == "summary" :
-            #print(f'setting summary cal {self.opCount} {self.opThresh}')
-            self.opThresh=int(t[2])
-        if m["cmd"] == "stop" :
-          self.over()
+        self.processCmdMsg(m)
+      elif m["type"] == "activity" :
+        #print(f'processMsg() received {m}')
+        self.processActivityMsg(m)
+        #logging.info(f'msg {m}')
       elif m["type"] == "runner" :
+        #logging.info(f'msg {m}')
         if  m["action"] == "start" :
-          logging.info(f'msg {m}')
           self.startedCuts += 1
           self.activeCuts += 1
         elif  m["action"] == "end" :
-          logging.info(f'msg {m}')
           self.endedCuts += 1
           self.activeCuts -= 1
         else :
