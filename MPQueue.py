@@ -6,6 +6,7 @@ import datetime
 from multiprocessing import Process,Queue
 import logging
 import time
+import traceback
 
 # custom process class
 class MPQueue(Process):
@@ -55,21 +56,21 @@ class MPQueue(Process):
 
   #---------------------------------------------------------------------------------------------
   def run(self):
-    print(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
-    logging.warning(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
-    self.last=time.time()
-    while True :
-      try :
-        msg = self.queue.get()
-        msg["_qSize"] = self.queue.qsize()
-        self.processMsg(msg)
-      except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, terminating Queue Reader")
-        break
-      except Exception as e :
-        print(f'Queue reader stopped {e}')
-        break
-    self.over()
+    try :
+      print(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
+      logging.warning(f'Queue Reader Starting {self.name} args={self.args} parms={self.parms}')
+      self.last=time.time()
+      while True :
+        try :
+          msg = self.queue.get()
+          msg["_qSize"] = self.queue.qsize()
+          self.processMsg(msg)
+        except KeyboardInterrupt:
+          print("Caught KeyboardInterrupt, terminating Queue Reader")
+          break
+      self.over()
+    except Exception as e :
+      logging.exception(f'{e}',stack_info=True,exc_info=True)
 
   #---------------------------------------------------------------------------------------------
   def oh(self):
@@ -122,7 +123,7 @@ class MPQueue(Process):
          self.runningWorkers += m["runningWorkers"]
        elif "busyWorkers" in m :
          self.busyWorkers += m["busyWorkers"] 
-       logging.info(f'{self.busyWorkers=} {self.runningWorkers=}')
+       logging.debug(f'{self.busyWorkers=} {self.runningWorkers=}')
      else :
        logging.error("No pid on activity message {m}")
 
@@ -130,7 +131,7 @@ class MPQueue(Process):
   def processMsg(self,m) :
     now=datetime.datetime.now()
     m["queueNow"]=now
-    logging.warning(f'Got msg {m}') 
+    logging.debug(f'Got msg {m}') 
     if "type" in m :
       if  m["type"] == "report" :
         self.processReportMsg(m)

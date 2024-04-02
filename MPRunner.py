@@ -56,7 +56,9 @@ class MPRunner(Process):
     except KeyboardInterrupt:
       print(f"Caught KeyboardInterrupt, terminating {self.__class__.__name__}")
     except Exception as e :
+      logging.exception(f'{e}',stack_info=True,exc_info=True)
       print(f'MPRunner exception stopped {e}')
+
 
 
 

@@ -46,5 +46,6 @@ class OPGenerator(Process):
       logging.info(f'{self.name} generator ended generated {count=} events')
       self.controllerQueue.put({"from":"generator","msg":"over","count":count})
     except Exception as e :
+      logging.exception(f'{e}',stack_info=True,exc_info=True)
       print(f'OPGenerator {e}')
 

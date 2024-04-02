@@ -129,7 +129,8 @@ class OPController(Process):
         #time.sleep(self.controllerDelay)
         #time.sleep(delay)
     except Exception as e :
-      print(f'{e}')
+      logging.exception(f'{e}',stack_info=True,exc_info=True)
+
 
   #----------------------------------------------------------------------
   def sendWorkersActivityStats(self) :
