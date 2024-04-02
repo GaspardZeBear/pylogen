@@ -33,6 +33,7 @@ class MPQueue(Process):
     self.busyWorkers=0
     self.queueHwm=0
     self.thruHwm=0
+    self.queueFeeders=0
     self.queueHwmTime=datetime.datetime.now()
     self.thruHwmTime=datetime.datetime.now()
     self.jtlName=f'pylogen-{self.thruHwmTime.strftime("%Y-%m-%d-%H:%M:%S")}.jtl'
@@ -80,7 +81,7 @@ class MPQueue(Process):
   def over(self):
     thruHwmTime=self.thruHwmTime.strftime("%Y-%m-%d %H:%M:%S")
     queueHwmTime=self.queueHwmTime.strftime("%Y-%m-%d %H:%M:%S")
-    print(f'QueueReader stopped processed {self.opCount} ThruHighwatermark {self.thruHwm:9.2f} at {self.thruHwmTime} QueueHighwatermark {self.queueHwm} at {self.queueHwmTime}')
+    logging.info(f'QueueReader stopped processed {self.opCount} ThruHighwatermark {self.thruHwm:9.2f} at {self.thruHwmTime} QueueHighwatermark {self.queueHwm} at {self.queueHwmTime}')
     #self.exit.set()
     #os._exit(os.EX_OK)
     sys.exit()
@@ -107,14 +108,22 @@ class MPQueue(Process):
 
   #---------------------------------------------------------------------------------------------
   def processCmdMsg(self,m) :
+    logging.info(f'{m=}')
     if m["cmd"].startswith("set ") :
       t=m["cmd"].split()
       #print(f'{t}')
       if t[1] == "summary" :
         #print(f'setting summary cal {self.opCount} {self.opThresh}')
         self.opThresh=int(t[2])
-    if m["cmd"] == "stop" :
-      self.over()
+    if m["cmd"] == "addfeeder" :
+        self.queueFeeders += 1
+    elif m["cmd"] == "removefeeder" :
+        self.queueFeeders -= 1
+    elif m["cmd"] == "stop" :
+      if self.queueFeeders == 0 :
+        logging.info(f'stop msg {self.queueFeeders=}, MPQueue over')
+        self.over()
+    logging.info(f'{self.queueFeeders=}')
 
   #---------------------------------------------------------------------------------------------
   def processActivityMsg(self,m) :
@@ -169,6 +178,9 @@ class MPQueue(Process):
            ))
     elif self.args.outformat == 'raw' :
       self.jtlFile.write((f"{m}\n"))
+    elif self.args.outformat == 'jtl' :
+      # timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+      pass
     else : 
       self.jtlFile.write((f'{m["time"][:-3]} typ {m["type"]:8s}'
             f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'

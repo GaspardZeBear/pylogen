@@ -14,6 +14,7 @@ class MPRunner(Process):
     Process.__init__(self)
     self.exit = multiprocessing.Event()
     self.args=args
+    self.queue=self.args.queue
     self.parms=parms
     logging.debug(f'MPRunner init() name={self.name} ')
     pName=self.name.split(':')[0]
@@ -25,9 +26,8 @@ class MPRunner(Process):
 
   def run(self):
     try :
-      logging.debug(f'Starting {self.name} args={self.args} parms={self.parms}')
-      #self.parms["queue"].putQueue({"type":"runner","action":"start","cut":self.parms["childClassName"]})
-      #----------------------------------------------------------------------
+      self.queue.putQueue({'type':'cmd','cmd':'addfeeder'})
+      logging.info(f'Start of {self.name} args={self.args} parms={self.parms}')
       self.parms["queue"].putQueue({ 
         "type" : "activity",
         "from" : "worker",
@@ -43,7 +43,6 @@ class MPRunner(Process):
       self.parms["runner"]=runner
       self.cut.setRunner(runner)
       runner.loop(self.cut)
-      #self.parms["queue"].putQueue({"type":"runner","action":"end","cut":self.parms["childClassName"]})
       self.parms["queue"].putQueue({ 
         "type" : "activity",
         "from" : "worker",
@@ -51,13 +50,16 @@ class MPRunner(Process):
         "cut":self.parms["childClassName"],
         "runningWorkers" : -1
       })
-      logging.debug(f'End of {self.name} args={self.args} parms={self.parms}')
+      logging.info(f'End of {self.name} args={self.args} parms={self.parms}')
+      self.queue.putQueue({'type':'cmd','cmd':'removefeeder'})
       self.exit.set()
-    except KeyboardInterrupt:
-      print(f"Caught KeyboardInterrupt, terminating {self.__class__.__name__}")
+    #except KeyboardInterrupt:
+    #  print(f"Caught KeyboardInterrupt, terminating {self.__class__.__name__}")
     except Exception as e :
       logging.exception(f'{e}',stack_info=True,exc_info=True)
       print(f'MPRunner exception stopped {e}')
+    finally:
+      self.queue.putQueue({'type':'cmd','cmd':'removefeeder'})
 
 
 

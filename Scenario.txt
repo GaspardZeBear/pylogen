@@ -1,2 +1,4 @@
-cuts.Dummy  --id DUM1 --length 1024 --proc 2 --pauselen 0 --pauseloo 2.01 --loop 10 --ram 5 -vv
-cuts.Dummy  --id DUM2 --length 100,256  --proc 3 --pauselen 0 --pauseloo 1.03 --loop 10 --ram 4 -vv
+#cuts.Dummy  --id CLO_DUM1 --length 0 --proc 2 --loop 10 --ram 5 -vvv
+#cuts.Dummy  --id CLO_DUM2 --length 0 --proc 3  --loop 10 --ram 5 --duration 10  -vvv
+cuts.Dummy --opened --id OPE_DUM1 --length 0 --sche 5@1  -vvv
+cuts.Dummy --opened --id OPE_DUM2 --length 0 --sche 5@1  -vvv

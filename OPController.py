@@ -88,20 +88,16 @@ class OPController(Process):
   #-----------------------------------------------------------------------------------------------
   def run(self):
     try :
-      #self.pid=os.getpid()
       logging.info(f'Starting {self.name} args={self.args} {self.pid=}')
       logging.warning(f'Controller launching prefork workers')
       self.launchPreforkWorkers()
       logging.warning(f'Controller giving go to generator')
       self.generatorQueue.put({"from":"controller","msg":"go"})
-      #while True :
       while not self.generatorOver or ( self.eventGenerated > self.eventProcessed)  :
         try:
           loops = 0
-          #while True :
           while loops < self.trigger  :
             loops += 1
-            # msg=self.controllerQueue.get(False)
             msg=self.controllerQueue.get(True,self.controllerDelay)
             logging.debug(f'Controller got {msg} in controllerQueue')
             self.processControllerQueueMsg(msg)
@@ -125,9 +121,6 @@ class OPController(Process):
           if self.decrease > self.decreaseArgs :
             self.jobsQueue.put(None)
             self.decrease=0
-        #logging.info(f'{self.name} sleeping for {delay}')
-        #time.sleep(self.controllerDelay)
-        #time.sleep(delay)
     except Exception as e :
       logging.exception(f'{e}',stack_info=True,exc_info=True)
 

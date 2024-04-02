@@ -6,7 +6,6 @@ import logging
 from datetime import datetime,timedelta
 from RequestsManager import *
 from Request import *
-from Scoreboard import *
 
 #----------------------------------------------
 class Runner() :
@@ -36,15 +35,17 @@ class Runner() :
     self.queue=self.parms["queue"]
     self.controllerQueue=self.parms["controllerQueue"]
     self.name=self.args.id
-    self.scoreboard=Scoreboard(self.fullId,self.parms["scoreboard"])
     now=datetime.now()
     if self.args.openedmodel :
+      logging.info(f"Opened model")
       self.loopMethod=self.loopQueue
     else : 
       if int(self.args.duration) > 0 :
+        logging.info(f"Closed model with duration {self.args.duration}")
         self.loopMethod=self.loopDuration
         self.exitTime=now + timedelta(seconds=int(self.args.duration))
       else :
+        logging.info(f"Closed model with loops {self.args.loops}")
         self.loopMethod=self.loopLoop
 
   #--------------------------------------------------------------------------------------
@@ -107,7 +108,6 @@ class Runner() :
       logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
       self.sendWorkersActivityStats(-1)
-    self.scoreboard.close()
     logging.info(f'{self.name} loopQueue() terminated ')
     self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'terminated'})
 
@@ -129,7 +129,6 @@ class Runner() :
       self.loopOnLengths(cut)
       self.sendWorkersActivityStats(-1) 
       time.sleep(float(self.args.pauseloop))
-    self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
@@ -139,7 +138,6 @@ class Runner() :
       self.loopOnLengths(cut)
       self.sendWorkersActivityStats(-1)
       time.sleep(float(self.args.pauseloop))
-    self.scoreboard.close()
 
   #--------------------------------------------------------------------------------------
   def sendError(self,e) :
@@ -237,7 +235,5 @@ class Runner() :
         self.transactionId=f'None'
       for r in rmngr.getRequests() :
         self.reportRequest(rmngr,r,lengths[j])
-      self.scoreboard.update(rmngr)
-      #self.scoreboard.publish()
       time.sleep(float(self.args.pauselen))
 

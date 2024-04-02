@@ -14,6 +14,7 @@ class OPGenerator(Process):
     self.name="Generator"
     self.args=args
     self.parms=parms
+    self.queue=self.parms["queue"]
     self.jobsQueue=self.parms["jobsQueue"]
     self.controllerQueue=self.parms["controllerQueue"]
     self.generatorQueue=self.parms["generatorQueue"]
