@@ -26,7 +26,7 @@ class MPRunner(Process):
 
   def run(self):
     try :
-      self.queue.putQueue({'type':'cmd','cmd':'addfeeder'})
+      self.parms["queue"].putQueue({'type':'cmd','cmd':'addfeeder','id':os.getpid()})
       logging.info(f'Start of {self.name} args={self.args} parms={self.parms}')
       self.parms["queue"].putQueue({ 
         "type" : "activity",
@@ -37,12 +37,11 @@ class MPRunner(Process):
       })
 
       time.sleep(self.parms["delay"])
-      logging.debug(f'Creating runner')
       runner=Runner(self.args,self.parms)
-      logging.debug(f' runner created')
       self.parms["runner"]=runner
       self.cut.setRunner(runner)
       runner.loop(self.cut)
+      logging.info(f'removefeeder')
       self.parms["queue"].putQueue({ 
         "type" : "activity",
         "from" : "worker",
@@ -51,7 +50,9 @@ class MPRunner(Process):
         "runningWorkers" : -1
       })
       logging.info(f'End of {self.name} args={self.args} parms={self.parms}')
-      self.queue.putQueue({'type':'cmd','cmd':'removefeeder'})
+      logging.info(f'removefeeder')
+      logging.info(f'Will send msg removefeeder')
+      self.parms["queue"].putQueue({'type':'cmd','cmd':'removefeeder','id':os.getpid()})
       self.exit.set()
     #except KeyboardInterrupt:
     #  print(f"Caught KeyboardInterrupt, terminating {self.__class__.__name__}")
@@ -59,7 +60,8 @@ class MPRunner(Process):
       logging.exception(f'{e}',stack_info=True,exc_info=True)
       print(f'MPRunner exception stopped {e}')
     finally:
-      self.queue.putQueue({'type':'cmd','cmd':'removefeeder'})
+      #self.queue.putQueue({'type':'cmd','cmd':'removefeeder'})
+      pass
 
 
 

@@ -94,6 +94,7 @@ class Runner() :
     while True :
       logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
       work=self.parms["jobsQueue"].get()
+      logging.info(f'{work=}')
       if work is None :
         logging.info(f'{self.name} null event, exiting')
         break

@@ -119,8 +119,27 @@ class OPController(Process):
           delay=self.controllerDelay
           self.decrease += 1
           if self.decrease > self.decreaseArgs :
+            logging.info(f'Sending work=None to jobsQueue')
             self.jobsQueue.put(None)
             self.decrease=0
+      logging.warning(f'Controller exited from main loop {self.generatorOver=}  {self.eventGenerated=} {self.eventProcessed=}')
+      children=multiprocessing.active_children()
+      childrenCount=len(children)
+      for child in children :
+        logging.warning(f'Remaining worker  {child=} {childrenCount=}')
+      for i in range(0,childrenCount) : 
+        logging.info(f'Sending work=None number {i} to jobsQueue')
+        self.jobsQueue.put(None)
+      
+      for i in range(0,childrenCount) :
+        try :
+          #msg=self.jobsQueue.get(True,self.controllerDelay)
+          msg=self.jobsQueue.get(True,0.01)
+          logging.debug(f'jobsQueue check {i=} Controller got {msg} in controllerQueue')
+        except Empty:
+          logging.debug(f'jobsQueue check {i=} Controller got nothing in controllerQueue')
+          pass
+
     except Exception as e :
       logging.exception(f'{e}',stack_info=True,exc_info=True)
 
