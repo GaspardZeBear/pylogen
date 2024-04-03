@@ -130,7 +130,9 @@ class OPController(Process):
       for i in range(0,childrenCount) : 
         logging.info(f'Sending work=None number {i} to jobsQueue')
         self.jobsQueue.put(None)
-      
+     
+      # trying to force read of jobsQueue as workers don't read it ! 
+      # Strange ! Should not have to do that
       for i in range(0,childrenCount) :
         try :
           #msg=self.jobsQueue.get(True,self.controllerDelay)
