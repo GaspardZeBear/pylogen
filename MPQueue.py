@@ -4,6 +4,7 @@ import atexit
 import multiprocessing 
 import datetime 
 from multiprocessing import Process,Queue
+from multiprocessing import JoinableQueue
 import logging
 import time
 import traceback
@@ -39,6 +40,7 @@ class MPQueue(Process):
     self.jtlName=f'pylogen-{self.thruHwmTime.strftime("%Y-%m-%d-%H:%M:%S")}.jtl'
     self.jtlFile=open(self.jtlName,"w")
     self.last=time.time()
+    #self.queue=Queue()
     self.queue=Queue()
     logging.info(f'Queue Reader created queue {self}')
 

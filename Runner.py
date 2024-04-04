@@ -95,7 +95,11 @@ class Runner() :
       logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
       work=self.parms["jobsQueue"].get()
       logging.info(f'{work=}')
-      if work is None :
+      if "type" in work :
+        if work["type"] == "cmd" and work["cmd"]=="stop" :
+          logging.info(f'{self.name} getting stop cmd event, exiting')
+          break
+      elif work is None :
         logging.info(f'{self.name} null event, exiting')
         break
       self.sendWorkersActivityStats(1)

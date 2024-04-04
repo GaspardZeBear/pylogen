@@ -120,7 +120,8 @@ class OPController(Process):
           self.decrease += 1
           if self.decrease > self.decreaseArgs :
             logging.info(f'Sending work=None to jobsQueue')
-            self.jobsQueue.put(None)
+            #self.jobsQueue.put(None)
+            self.sendStopToJobsqueue()
             self.decrease=0
       logging.warning(f'Controller exited from main loop {self.generatorOver=}  {self.eventGenerated=} {self.eventProcessed=}')
       children=multiprocessing.active_children()
@@ -129,15 +130,20 @@ class OPController(Process):
         logging.warning(f'Remaining worker  {child=} {childrenCount=}')
       for i in range(0,childrenCount) : 
         logging.info(f'Sending work=None number {i} to jobsQueue')
-        self.jobsQueue.put(None)
+        self.sendStopToJobsqueue()
+        #self.jobsQueue.put(None)
      
       # trying to force read of jobsQueue as workers don't read it ! 
       # Strange ! Should not have to do that
-      for i in range(0,childrenCount) :
+      #for i in range(0,2*childrenCount) :
+      logging.warning(f'Controller waiting for {1*self.controllerDelay} ')
+      time.sleep(self.controllerDelay)
+      logging.warning(f'Controller over')
+      for i in range(0,0) :
         try :
           #msg=self.jobsQueue.get(True,self.controllerDelay)
-          msg=self.jobsQueue.get(True,0.01)
-          logging.debug(f'jobsQueue check {i=} Controller got {msg} in controllerQueue')
+          msg=self.jobsQueue.get(True,0.1)
+          logging.debug(f'jobsQueue check {i=} Controller got {msg} in controllerQueue size {self.jobsQueue.size()}')
         except Empty:
           logging.debug(f'jobsQueue check {i=} Controller got nothing in controllerQueue')
           pass
@@ -145,6 +151,8 @@ class OPController(Process):
     except Exception as e :
       logging.exception(f'{e}',stack_info=True,exc_info=True)
 
+  def sendStopToJobsqueue(self) :
+    self.jobsQueue.put({"type":"cmd","cmd":"stop"})
 
   #----------------------------------------------------------------------
   def sendWorkersActivityStats(self) :
