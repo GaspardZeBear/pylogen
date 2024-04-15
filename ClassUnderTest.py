@@ -10,6 +10,7 @@ class ClassUnderTest() :
     self.parms=parms
     self.datas=None
     self.runner=None
+    self.step=None
     self.reset()
 
   #-------------------------------------------------------------------
@@ -20,8 +21,9 @@ class ClassUnderTest() :
   def getRequestsManager(self) :
     return(self.requestsManager)
 
-  def genDatas(self,length) :
-    self.datas=''.join(random.choices(string.ascii_letters, k=length))
+  def genDatas(self) :
+    #self.datas=''.join(random.choices(string.ascii_letters, k=length))
+    print("to be implemented")
 
   def setRunner(self,runner) :
     self.runner=runner
@@ -31,6 +33,9 @@ class ClassUnderTest() :
 
   def setDatas(self,datas) :
     self.datas=datas
+
+  def setStep(self,step) :
+    self.step=step
 
   def processDatas(self) :
     pass

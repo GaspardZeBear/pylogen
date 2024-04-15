@@ -14,11 +14,11 @@ class Defaults() :
   prefork="10"
   rampup="5"
   pauseloop="1"
-  pauselen="1"
+  pausestep="1"
   summary="1"
   shmsize="1024"
   outformat="short"
-  lengths='0,256,512,1024,2048,4096,8192'
+  steps='A,256,512,1024,2048,4096,8192'
   extra='{}'
 
   @staticmethod

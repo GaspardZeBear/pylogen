@@ -184,7 +184,7 @@ class MPQueue(Process):
             f' {self.opCount:8d} {self.thru:9.2f}'
             f' {self.startedCuts:8d} {self.endedCuts:8d} {self.activeCuts:8d}'
             f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
-            f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+            f' {m["opcount"]:6d} {m["thru"]:9.2f} RC {m["rc"]} step {m["step"]:5s} t {m["delta"]:5.3f}'
             f'\n'
            ))
     elif self.args.outformat == 'raw' :
@@ -197,7 +197,7 @@ class MPQueue(Process):
             f' {msg["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
             f' sta {self.startedCuts:8d} end {self.endedCuts:8d} act {self.activeCuts:8d}'
             f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
-            f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
+            f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} step {m["step"]:5s} t {m["delta"]:5.3f}'
             f'\n'
            ))
     self.jtlFile.flush()

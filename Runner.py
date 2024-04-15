@@ -150,7 +150,7 @@ class Runner() :
     self.sendMsgToQueue("error",{"fullId": f'{self.fullId}.{self.requestName}',"error" : f'{e}'})
 
   #--------------------------------------------------------------------------------------
-  def reportTransaction(self,rm,r,length) :
+  def reportTransaction(self,rm,r,step) :
     self.queueSender.sendMsgToQueue("report",{
         "time" : rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
         "epoch" : rm.getRequests()[0].getBegin().timestamp(),
@@ -160,11 +160,11 @@ class Runner() :
         "transactionId" : self.transactionId,
         "thru" : self.thru,
         "rc": rm.getRc(),
-        "length" : length,
+        "step" : step,
     })
 
   #--------------------------------------------------------------------------------------
-  def reportRequest(self,rm,r,pLength) :
+  def reportRequest(self,rm,r,pStep) :
     thru=self.thru
     opCount=self.opCount
     if self.isTransaction :
@@ -179,7 +179,7 @@ class Runner() :
         "transactionId" : self.transactionId,
         "thru" : thru,
         "rc": r.getRc(),
-        "length" : pLength,
+        "step" : pStep,
         "delta": r.getDuration()
     })
 
@@ -187,12 +187,17 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loopOnLengths(self,cut) :
     #logging.info(f'{self.name} event called')
-    lengths=[int(x) for x in re.split(',',self.args.lengths) ]
-    for j in range(0,len(lengths)) :
+    #lengths=[int(x) for x in re.split(',',self.args.lengths) ]
+    steps=[x for x in re.split(',',self.args.steps) ]
+    #for j in range(0,len(lengths)) :
+    for j in range(0,len(steps)) :
       #logging.info(f'{self.name} loop {j}')
       self.opCount += 1
       cut.reset()
-      cut.genDatas(lengths[j])
+      #cut.genDatas(lengths[j])
+      #cut.genDatas(steps[j])
+      cut.setStep(steps[j])
+      cut.genDatas()
       cut.processDatas()
       cut.func()
       rmngr=cut.getRequestsManager()
@@ -210,11 +215,13 @@ class Runner() :
       if  len(rmngr.getRequests()) > 1 :
         self.transactionId=f'{self.id}.{self.opCount}'
         self.isTransaction=True
-        self.reportTransaction(rmngr,None,lengths[j])
+        self.reportTransaction(rmngr,None,steps[j])
       else :
         self.isTransaction=False
         self.transactionId=f'None'
       for r in rmngr.getRequests() :
-        self.reportRequest(rmngr,r,lengths[j])
-      time.sleep(float(self.args.pauselen))
+        #self.reportRequest(rmngr,r,lengths[j])
+        self.reportRequest(rmngr,r,steps[j])
+      #time.sleep(float(self.args.pauselen))
+      time.sleep(float(self.args.pausestep))
 
