@@ -28,7 +28,6 @@ class Runner() :
     self.last=time.time()
     #self.setTransaction(False)
     self.id=self.args.id
-    #self.id="myId"
     self.pid=os.getpid()
     self.setStartTime()
     self.setStopTime()
@@ -64,12 +63,6 @@ class Runner() :
       
   #--------------------------------------------------------------------------------------
   def setFullId(self,qualifier=0) :
-    #if len(qualifier) == 0 :
-      #self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}'
-      #self.fullId=f'{self.args.id}.{self.childClassName}'
-    #else :
-      #self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}.{qualifier}'
-      #self.fullId=f'{self.args.id}.{self.childClassName}.{qualifier}'
     self.fullId=f'{self.args.id}.{self.childClassName}.{qualifier}'
 
   #--------------------------------------------------------------------------------------
@@ -113,7 +106,6 @@ class Runner() :
       now=time.time() 
       waitTime=now - work["genTime"]
       logging.debug(f'now {now} event : {work} waited {waitTime}')
-      #print(f'{self.name} loopQueue() will process {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'busy'})
       self.loopOnLengths(cut)
       self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
@@ -186,16 +178,11 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def loopOnLengths(self,cut) :
-    #logging.info(f'{self.name} event called')
-    #lengths=[int(x) for x in re.split(',',self.args.lengths) ]
     steps=[x for x in re.split(',',self.args.steps) ]
-    #for j in range(0,len(lengths)) :
+    cut.resetBeforeSteps()
     for j in range(0,len(steps)) :
-      #logging.info(f'{self.name} loop {j}')
       self.opCount += 1
-      cut.reset()
-      #cut.genDatas(lengths[j])
-      #cut.genDatas(steps[j])
+      cut.resetBeforeStep()
       cut.setStep(steps[j])
       cut.genDatas()
       cut.processDatas()
@@ -220,8 +207,6 @@ class Runner() :
         self.isTransaction=False
         self.transactionId=f'None'
       for r in rmngr.getRequests() :
-        #self.reportRequest(rmngr,r,lengths[j])
         self.reportRequest(rmngr,r,steps[j])
-      #time.sleep(float(self.args.pauselen))
       time.sleep(float(self.args.pausestep))
 

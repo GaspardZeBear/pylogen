@@ -43,6 +43,9 @@ class Dummy(ClassUnderTest) :
       self.runDummyTransactionExecutor()
     else :
       reqId=f'R_{self.getStep()}'
+      self.addCtx(self.getStep(),{'count':self.count})
+      logging.warning(f'{self.getCtx()}')
+      logging.warning(f'{self.getCtx(self.getStep())}')
       if "error" in self.extra :
         if (self.count % self.extra["error"]) == 0 :
           self.runDummyExecutorError()

@@ -62,10 +62,10 @@ def fScenario(args) :
       logging.info(l[:-1])
       nl=l[:-1].lstrip()
       if nl.startswith("#") :
-        #print(f'<{nl[:-1]}> discard #')
+        logging.info(f'<{nl[:-1]}> discard #')
         continue
       if len(nl) ==0 :
-        #print(f'<{nl[:-1]}> discard 0')
+        logging.info(f'<{nl[:-1]}> discard 0')
         continue
       myParser(args.queue,l[:-1],lineno)
       lineno += 1
@@ -125,10 +125,8 @@ def myParser(queue,input,lineno) :
   print(f"myParser() got args {args=}")
   loglevels=[logging.ERROR,logging.WARNING,logging.INFO,logging.DEBUG,1]
   loglevel=loglevels[args.verbose] if args.verbose < len(loglevels) else loglevels[len(loglevels) - 1]
-  #print(f'Loglevel {loglevel=} will call logging.basicConfig')
   logging.basicConfig(force=True,format="%(asctime)s pid=%(process)d %(processName)s %(threadName)s %(module)s %(name)s  %(funcName)s %(lineno)s %(levelname)s %(message)s", level=loglevel)
-  #print(f'Loglevel {loglevel=}  called logging.basicConfig')
-  logging.info(f'Loglevel {loglevel=}  called logging.basicConfig')
+  logging.info(f'Loglevel {loglevel=}  called logging.basicConfig, loggin can be used')
 
   args.queue=queue
   queue.setArgs(args)

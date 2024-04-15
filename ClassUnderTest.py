@@ -11,11 +11,16 @@ class ClassUnderTest() :
     self.datas=None
     self.runner=None
     self.step=None
-    self.reset()
+    self.ctx={}
+    #self.reset()
 
   #-------------------------------------------------------------------
-  def reset(self) :
+  def resetBeforeStep(self) :
     self.requestsManager=RequestsManager('RMngr')
+
+  #-------------------------------------------------------------------
+  def resetBeforeSteps(self) :
+    self.ctx={}
 
   #-------------------------------------------------------------------
   def getRequestsManager(self) :
@@ -34,6 +39,18 @@ class ClassUnderTest() :
 
   def setDatas(self,datas) :
     self.datas=datas
+
+  def addCtx(self,key,datas) :
+    self.ctx[key]=datas
+
+  def getCtx(self,key=None) :
+    if key is None :
+      return(self.ctx)
+    else :
+      try :
+        return(self.ctx[key])
+      except Exception as e :
+        return(None)
 
   def setStep(self,step) :
     self.step=step
