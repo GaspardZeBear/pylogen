@@ -23,7 +23,8 @@ class ClassUnderTest() :
 
   def genDatas(self) :
     #self.datas=''.join(random.choices(string.ascii_letters, k=length))
-    print("to be implemented")
+    #print("to be implemented")
+    pass
 
   def setRunner(self,runner) :
     self.runner=runner
@@ -36,6 +37,9 @@ class ClassUnderTest() :
 
   def setStep(self,step) :
     self.step=step
+
+  def getStep(self) :
+    return(self.step)
 
   def processDatas(self) :
     pass

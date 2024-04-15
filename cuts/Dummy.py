@@ -42,13 +42,14 @@ class Dummy(ClassUnderTest) :
     if "transaction" in self.extra :
       self.runDummyTransactionExecutor()
     else :
+      reqId=f'R_{self.getStep()}'
       if "error" in self.extra :
         if (self.count % self.extra["error"]) == 0 :
           self.runDummyExecutorError()
         else :
-          self.runDummyExecutor(self.requestsManager.newRequest('R0'))
+          self.runDummyExecutor(self.requestsManager.newRequest(reqId))
       else :
-        self.runDummyExecutor(self.requestsManager.newRequest('R0'))
+        self.runDummyExecutor(self.requestsManager.newRequest(reqId))
     self.requestsManager.close()
     logging.debug("Dummy func() ending")
 
