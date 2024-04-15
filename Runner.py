@@ -26,7 +26,9 @@ class Runner() :
     self.opThresh=int(self.args.summary)
     self.last=time.time()
     #self.setTransaction(False)
-    self.id=os.getpid()
+    self.id=self.args.id
+    #self.id="myId"
+    self.pid=os.getpid()
     self.setStartTime()
     self.setStopTime()
     self.stopTimem1=self.stopTime
@@ -114,17 +116,38 @@ class Runner() :
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
       self.sendWorkersActivityStats(-1)
     logging.info(f'{self.name} loopQueue() terminated ')
-    self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'terminated'})
+    self.controllerQueue.put({'from':'worker','id':self.id,'pid':self.pid,'msg':'terminated'})
 
   #----------------------------------------------------------------------
-  def sendWorkersActivityStats(self,count) :
+  def sendMsgToQueue(self,type,msg) :
+    now=datetime.now()
+    t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
+    te=now.timestamp()
+    msg1={
+       "type" : type ,
+       "from" : "worker",
+       "time" : t,
+       "epoch" : te,
+       "pid" : self.pid,
+       "id" : self.id,
+       "msg" : msg
+       }
+    self.queue.putQueue(msg1)
+    
+  #----------------------------------------------------------------------
+  def XsendWorkersActivityStats(self,count) :
     activity={
         "type" : "activity",
         "from" : "worker",
         "id" : self.id,
+        "pid" : self.pid,
         "busyWorkers" : count
     }
     self.queue.putQueue(activity)
+
+#----------------------------------------------------------------------
+  def sendWorkersActivityStats(self,count) :
+    self.sendMsgToQueue("activity",{"busyWorkers" : count})
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
@@ -145,12 +168,15 @@ class Runner() :
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
-  def sendError(self,e) :
+  def XsendError(self,e) :
     now=datetime.now()
     t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
     te=now.timestamp()
     err={
       "type": "error",
+      "from" : "worker",
+      "id" : self.id,
+      "pid" : self.pid,
       "error" : {
          "time" : t,
          "epoch" : te,
@@ -160,16 +186,21 @@ class Runner() :
     }
     self.queue.putQueue(err)
       
-
   #--------------------------------------------------------------------------------------
-  def reportTransaction(self,rm,r,length) :
+  def sendError(self,e) :
+    self.sendMsgToQueue("error",{"fullId": f'{self.fullId}.{self.requestName}',"error" : f'{e}'})
+
+#--------------------------------------------------------------------------------------
+  def XreportTransaction(self,rm,r,length) :
     t=rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f")
     te=rm.getRequests()[0].getBegin().timestamp()
     report={
        "type" : "report",
+       "from" : "worker",
         "time" : t,
         "epoch" : te,
-        "pid" : self.id,
+        "pid" : self.pid,
+        "id" : self.id,
         "fullId" : f'{self.fullId}.{rm.getName()}',
         "opcount" : self.opCount,
         "nature" : "tra",
@@ -181,8 +212,23 @@ class Runner() :
     }
     self.queue.putQueue(report)
 
+#--------------------------------------------------------------------------------------
+  def reportTransaction(self,rm,r,length) :
+    self.sendMsgToQueue("report",{
+        "time" : rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
+        "epoch" : rm.getRequests()[0].getBegin().timestamp(),
+        "fullId" : f'{self.fullId}.{rm.getName()}',
+        "opcount" : self.opCount,
+        "nature" : "tra",
+        "transactionId" : self.transactionId,
+        "thru" : self.thru,
+        "rc": rm.getRc(),
+        "length" : length,
+    })
+
+
   #--------------------------------------------------------------------------------------
-  def reportRequest(self,rm,r,pLength) :
+  def XreportRequest(self,rm,r,pLength) :
     t=r.getBegin().strftime("%Y-%m-%d %H:%M:%S.%f")
     te=r.getBegin().timestamp()
     thru=self.thru
@@ -193,10 +239,12 @@ class Runner() :
       #length=-1
       opCount=0
     report={
-       "type" : "report",
+        "type" : "report",
+        "from" : "worker",
         "time" : t,
         "epoch" : te,
-        "pid" : self.id,
+        "pid" : self.pid,
+        "id" : self.id,
         "fullId" : f'{self.fullId}.{rm.getName()}.{r.getName()}',
         "opcount" : opCount,
         "nature" : "req",
@@ -207,6 +255,27 @@ class Runner() :
         "delta": r.getDuration()
     }
     self.queue.putQueue(report)
+
+  #--------------------------------------------------------------------------------------
+  def reportRequest(self,rm,r,pLength) :
+    thru=self.thru
+    opCount=self.opCount
+    if self.isTransaction :
+      thru=-1
+      opCount=0
+    self.sendMsgToQueue("report",{
+        "time" : r.getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
+        "epoch" : r.getBegin().timestamp(),
+        "fullId" : f'{self.fullId}.{rm.getName()}.{r.getName()}',
+        "opcount" : opCount,
+        "nature" : "req",
+        "transactionId" : self.transactionId,
+        "thru" : thru,
+        "rc": r.getRc(),
+        "length" : pLength,
+        "delta": r.getDuration()
+    })
+
 
   #--------------------------------------------------------------------------------------
   def loopOnLengths(self,cut) :

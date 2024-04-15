@@ -31,7 +31,8 @@ class MPRunner(Process):
       self.parms["queue"].putQueue({ 
         "type" : "activity",
         "from" : "worker",
-        "id" : os.getpid(),
+        "pid" : os.getpid(),
+        "id" : self.args.id,
         "cut":self.parms["childClassName"],
         "runningWorkers" : 1
       })
@@ -45,7 +46,8 @@ class MPRunner(Process):
       self.parms["queue"].putQueue({ 
         "type" : "activity",
         "from" : "worker",
-        "id" : os.getpid(),
+        "pid" : os.getpid(),
+        "id" : self.args.id,
         "cut":self.parms["childClassName"],
         "runningWorkers" : -1
       })

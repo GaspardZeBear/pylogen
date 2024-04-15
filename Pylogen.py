@@ -60,6 +60,7 @@ def openedModel(args,resultQueue):
 #-----------------------------------------------------
 def fScenario(args) :
   print(f'Playing {args.file}')
+  lineno=1
   with open(args.file) as fIn :
     for l in fIn.readlines() :
       logging.info(l[:-1])
@@ -70,10 +71,11 @@ def fScenario(args) :
       if len(nl) ==0 :
         #print(f'<{nl[:-1]}> discard 0')
         continue
-      myParser(args.queue,l[:-1])
+      myParser(args.queue,l[:-1],lineno)
+      lineno += 1
 
 #------------------------------------------------------------------------------
-def myParser(queue,input) :
+def myParser(queue,input,lineno) :
   print(f'myParser()  Starting : {input=}')
   parser = argparse.ArgumentParser(add_help=False)
   parser.add_argument('-v', '--verbose',
@@ -123,6 +125,7 @@ def myParser(queue,input) :
     print(f'myParser() len(input) > 0 : {input=} {cmdLine=}')
     args=parser.parse_args(cmdLine)
 
+  #args.id=f'{args.id}-{lineno}'
   print(f"myParser() got args {args=}")
   loglevels=[logging.ERROR,logging.WARNING,logging.INFO,logging.DEBUG,1]
   loglevel=loglevels[args.verbose] if args.verbose < len(loglevels) else loglevels[len(loglevels) - 1]
@@ -161,7 +164,7 @@ if __name__ == "__main__":
   Defaults.init()
   queue=MPQueue(None,None)
   queue.daemon=False
-  myParser(queue,'')
+  myParser(queue,'',0)
   time.sleep(5)
   while True :
     children=multiprocessing.active_children() 

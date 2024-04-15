@@ -89,8 +89,9 @@ class MPQueue(Process):
     sys.exit()
 
   #---------------------------------------------------------------------------------------------
-  def processReportMsg(self,m) :
+  def processReportMsg(self,msg) :
     #print(f'processReportMsg() starting {m}')
+    m=msg["msg"]
     if  m["nature"] == "req" :
       self.opCount += 1
     now=time.time()
@@ -102,11 +103,11 @@ class MPQueue(Process):
       if self.thru > self.thruHwm : 
         self.thruHwm = self.thru
         self.thruHwmTime = datetime.datetime.now()
-    if m["_qSize"] > self.queueHwm : 
-      self.queueHwm = m["_qSize"]
+    if msg["_qSize"] > self.queueHwm : 
+      self.queueHwm = msg["_qSize"]
       self.queueHwmTime = datetime.datetime.now()
     #print(f'processReportMsg() ending {m}')
-    self.out(m)
+    self.out(msg)
 
   #---------------------------------------------------------------------------------------------
   def processCmdMsg(self,m) :
@@ -141,7 +142,7 @@ class MPQueue(Process):
 #---------------------------------------------------------------------------------------------
   def processMsg(self,m) :
     now=datetime.datetime.now()
-    m["queueNow"]=now
+    m["_queueNow"]=now
     logging.debug(f'Got msg {m}') 
     if "type" in m :
       if  m["type"] == "report" :
@@ -169,9 +170,10 @@ class MPQueue(Process):
 
    
   #---------------------------------------------------------------------------------------------
-  def out(self,m) :
+  def out(self,msg) :
+    m=msg["msg"]
     if self.args.outformat == 'short' :
-      self.jtlFile.write((f'{m["time"][:-3]} {m["epoch"]:14.3f} {m["type"]:8s}'
+      self.jtlFile.write((f'{m["time"][:-3]} {m["epoch"]:14.3f} {msg["type"]:8s}'
             f' {self.opCount:8d} {self.thru:9.2f}'
             f' {self.startedCuts:8d} {self.endedCuts:8d} {self.activeCuts:8d}'
             f' {m["fullId"]:40s} {m["nature"]:10} {m["transactionId"]:10s}'
@@ -184,8 +186,8 @@ class MPQueue(Process):
       # timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
       pass
     else : 
-      self.jtlFile.write((f'{m["time"][:-3]} typ {m["type"]:8s}'
-            f' {m["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
+      self.jtlFile.write((f'{m["time"][:-3]} typ {msg["type"]:8s}'
+            f' {msg["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'
             f' sta {self.startedCuts:8d} end {self.endedCuts:8d} act {self.activeCuts:8d}'
             f' pid {m["pid"]:6d} fullId {m["fullId"]:40s} kind {m["nature"]:10} transId {m["transactionId"]:10s}'
             f' opcount {m["opcount"]:6d} thru {m["thru"]:9.2f} RC {m["rc"]} len {m["length"]:5d} t {m["delta"]:5.3f}'
