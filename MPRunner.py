@@ -1,3 +1,4 @@
+import importlib
 import multiprocessing 
 from multiprocessing import Process,Event
 import logging
@@ -8,7 +9,7 @@ from ClassUnderTest import *
 
 # custom process class
 class MPRunner(Process):
-  def __init__(self,args,parms,cut) :
+  def __init__(self,args,parms) :
     logging.debug(f'MPRunner init() args={args} ')
     logging.debug(f'MPRunner init() parms={parms} ')
     Process.__init__(self)
@@ -20,8 +21,11 @@ class MPRunner(Process):
     pName=self.name.split(':')[0]
     #self.parms["pNum"]=str(int(self.name.split('-')[1]) -1)
     self.parms["pNum"]=str(int(pName.split('-')[1]) -1)
-    self.parms["childClassName"]=cut.__class__.__name__
-    self.cut=cut
+    qualifiers=args.action.split('.')
+    obj=qualifiers[-1]
+
+    self.cut=getattr(importlib.import_module(args.action), obj)(args,parms)
+    self.parms["childClassName"]=self.cut.__class__.__name__
     logging.debug(f'MPRunner {self.name}  created')
 
   def run(self):

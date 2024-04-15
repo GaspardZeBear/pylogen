@@ -135,17 +135,6 @@ class Runner() :
     self.queue.putQueue(msg1)
     
   #----------------------------------------------------------------------
-  def XsendWorkersActivityStats(self,count) :
-    activity={
-        "type" : "activity",
-        "from" : "worker",
-        "id" : self.id,
-        "pid" : self.pid,
-        "busyWorkers" : count
-    }
-    self.queue.putQueue(activity)
-
-#----------------------------------------------------------------------
   def sendWorkersActivityStats(self,count) :
     self.sendMsgToQueue("activity",{"busyWorkers" : count})
 
@@ -168,51 +157,10 @@ class Runner() :
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
-  def XsendError(self,e) :
-    now=datetime.now()
-    t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
-    te=now.timestamp()
-    err={
-      "type": "error",
-      "from" : "worker",
-      "id" : self.id,
-      "pid" : self.pid,
-      "error" : {
-         "time" : t,
-         "epoch" : te,
-         "fullId": f'{self.fullId}.{self.requestName}',
-         "error" : f'{e}'
-      }
-    }
-    self.queue.putQueue(err)
-      
-  #--------------------------------------------------------------------------------------
   def sendError(self,e) :
     self.sendMsgToQueue("error",{"fullId": f'{self.fullId}.{self.requestName}',"error" : f'{e}'})
 
-#--------------------------------------------------------------------------------------
-  def XreportTransaction(self,rm,r,length) :
-    t=rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f")
-    te=rm.getRequests()[0].getBegin().timestamp()
-    report={
-       "type" : "report",
-       "from" : "worker",
-        "time" : t,
-        "epoch" : te,
-        "pid" : self.pid,
-        "id" : self.id,
-        "fullId" : f'{self.fullId}.{rm.getName()}',
-        "opcount" : self.opCount,
-        "nature" : "tra",
-        "transactionId" : self.transactionId,
-        "thru" : self.thru,
-        "rc": rm.getRc(),
-        "length" : length,
-        "delta": rm.getDuration()
-    }
-    self.queue.putQueue(report)
-
-#--------------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------------
   def reportTransaction(self,rm,r,length) :
     self.sendMsgToQueue("report",{
         "time" : rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
@@ -225,36 +173,6 @@ class Runner() :
         "rc": rm.getRc(),
         "length" : length,
     })
-
-
-  #--------------------------------------------------------------------------------------
-  def XreportRequest(self,rm,r,pLength) :
-    t=r.getBegin().strftime("%Y-%m-%d %H:%M:%S.%f")
-    te=r.getBegin().timestamp()
-    thru=self.thru
-    opCount=self.opCount
-    length=pLength
-    if self.isTransaction :
-      thru=-1
-      #length=-1
-      opCount=0
-    report={
-        "type" : "report",
-        "from" : "worker",
-        "time" : t,
-        "epoch" : te,
-        "pid" : self.pid,
-        "id" : self.id,
-        "fullId" : f'{self.fullId}.{rm.getName()}.{r.getName()}',
-        "opcount" : opCount,
-        "nature" : "req",
-        "transactionId" : self.transactionId,
-        "thru" : thru,
-        "rc": r.getRc(),
-        "length" : length,
-        "delta": r.getDuration()
-    }
-    self.queue.putQueue(report)
 
   #--------------------------------------------------------------------------------------
   def reportRequest(self,rm,r,pLength) :

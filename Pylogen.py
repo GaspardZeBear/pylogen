@@ -16,6 +16,7 @@ from MPRunner import *
 from MPQueue import *
 from OPController import *
 from OPGenerator import *
+from CutLauncher import *
 
 #------------------------------------------------------------------------------
 # closedModel
@@ -24,16 +25,11 @@ from OPGenerator import *
 def closedModel(args,resultQueue):
   logging.warning(f'Launching {args.action}')
   parms={"queue":resultQueue,"delay":int(args.postpone)}
-  qualifiers=args.action.split('.')
-  obj=qualifiers[-1]
   parms["controllerQueue"]=None
   parms["generatorQueue"]=None
   for i in range(0,int(args.process)) :
     logging.info(f'Launching {args.action}')
-    cut=getattr(importlib.import_module(args.action), obj)(args,parms)
-    mpRunner=MPRunner(args,parms,cut)
-    mpRunner.daemon=True
-    mpRunner.start()
+    CutLauncher(args,parms)
     parms["delay"] += int(args.rampup) 
 
 #------------------------------------------------------------------------------
