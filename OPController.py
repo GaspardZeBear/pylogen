@@ -88,6 +88,7 @@ class OPController(Process):
   #-----------------------------------------------------------------------------------------------
   def run(self):
     try :
+      self.args.id=f'{self.args.id}:{os.getpid()}'
       logging.info(f'Starting {self.name} args={self.args} {self.pid=}')
       logging.warning(f'Controller launching prefork workers')
       self.launchPreforkWorkers()

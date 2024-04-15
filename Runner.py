@@ -6,6 +6,7 @@ import logging
 from datetime import datetime,timedelta
 from RequestsManager import *
 from Request import *
+from QueueSender import *
 
 #----------------------------------------------
 class Runner() :
@@ -35,9 +36,10 @@ class Runner() :
     self.thru=0
     self.setFullId()
     self.queue=self.parms["queue"]
+    self.queueSender=self.parms["queueSender"]
     self.controllerQueue=self.parms["controllerQueue"]
     self.name=self.args.id
-    now=datetime.now()
+    now=datetime.datetime.now()
     if self.args.openedmodel :
       logging.info(f"Opened model")
       self.loopMethod=self.loopQueue
@@ -61,11 +63,14 @@ class Runner() :
       
       
   #--------------------------------------------------------------------------------------
-  def setFullId(self,qualifier='') :
-    if len(qualifier) == 0 :
-      self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}'
-    else :
-      self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}.{qualifier}'
+  def setFullId(self,qualifier=0) :
+    #if len(qualifier) == 0 :
+      #self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}'
+      #self.fullId=f'{self.args.id}.{self.childClassName}'
+    #else :
+      #self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}.{qualifier}'
+      #self.fullId=f'{self.args.id}.{self.childClassName}.{qualifier}'
+    self.fullId=f'{self.args.id}.{self.childClassName}.{qualifier}'
 
   #--------------------------------------------------------------------------------------
   def setRequestName(self,name) :
@@ -119,24 +124,8 @@ class Runner() :
     self.controllerQueue.put({'from':'worker','id':self.id,'pid':self.pid,'msg':'terminated'})
 
   #----------------------------------------------------------------------
-  def sendMsgToQueue(self,type,msg) :
-    now=datetime.now()
-    t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
-    te=now.timestamp()
-    msg1={
-       "type" : type ,
-       "from" : "worker",
-       "time" : t,
-       "epoch" : te,
-       "pid" : self.pid,
-       "id" : self.id,
-       "msg" : msg
-       }
-    self.queue.putQueue(msg1)
-    
-  #----------------------------------------------------------------------
   def sendWorkersActivityStats(self,count) :
-    self.sendMsgToQueue("activity",{"busyWorkers" : count})
+    self.queueSender.sendMsgToQueue("activity",{"busyWorkers" : count})
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
@@ -149,7 +138,7 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
-    while (datetime.now() < self.exitTime ) :
+    while (datetime.datetime.now() < self.exitTime ) :
       logging.info(f'{self.name} loopDuration() ')
       self.sendWorkersActivityStats(1) 
       self.loopOnLengths(cut)
@@ -162,7 +151,7 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def reportTransaction(self,rm,r,length) :
-    self.sendMsgToQueue("report",{
+    self.queueSender.sendMsgToQueue("report",{
         "time" : rm.getRequests()[0].getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
         "epoch" : rm.getRequests()[0].getBegin().timestamp(),
         "fullId" : f'{self.fullId}.{rm.getName()}',
@@ -181,7 +170,7 @@ class Runner() :
     if self.isTransaction :
       thru=-1
       opCount=0
-    self.sendMsgToQueue("report",{
+    self.queueSender.sendMsgToQueue("report",{
         "time" : r.getBegin().strftime("%Y-%m-%d %H:%M:%S.%f"),
         "epoch" : r.getBegin().timestamp(),
         "fullId" : f'{self.fullId}.{rm.getName()}.{r.getName()}',
@@ -208,7 +197,7 @@ class Runner() :
       cut.func()
       rmngr=cut.getRequestsManager()
       delta = rmngr.getDuration()
-      now=datetime.now()
+      now=datetime.datetime.now()
       t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
       te=now.timestamp()
       nowTime=time.time()
@@ -217,7 +206,7 @@ class Runner() :
         self.thru = (self.opCount - self.opCountLast) / interval
         self.last=nowTime
         self.opCountLast=self.opCount
-      self.fullId=f'{self.args.id}-{self.pNum}.{self.childClassName}'
+      self.setFullId(j)
       if  len(rmngr.getRequests()) > 1 :
         self.transactionId=f'{self.id}.{self.opCount}'
         self.isTransaction=True

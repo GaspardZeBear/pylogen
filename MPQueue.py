@@ -30,8 +30,8 @@ class MPQueue(Process):
     self.startedCuts=0
     self.endedCuts=0
     self.activeCuts=0
-    self.runningWorkers=0
-    self.busyWorkers=0
+    self.runningWorkers={}
+    self.busyWorkers={}
     self.queueHwm=0
     self.thruHwm=0
     self.queueFeeders=0
@@ -110,9 +110,12 @@ class MPQueue(Process):
     self.out(msg)
 
   #---------------------------------------------------------------------------------------------
-  def processCmdMsg(self,m) :
+  def processCmdMsg(self,msg) :
+    m=msg["msg"]
     logging.info(f'{m=}')
+    logging.info(f'{msg=}')
     if m["cmd"].startswith("set ") :
+      logging.info(f'set command')
       t=m["cmd"].split()
       #print(f'{t}')
       if t[1] == "summary" :
@@ -129,15 +132,19 @@ class MPQueue(Process):
     logging.info(f'{self.queueFeeders=}')
 
   #---------------------------------------------------------------------------------------------
-  def processActivityMsg(self,m) :
-     if "id" in m :
-       if "runningWorkers" in m : 
-         self.runningWorkers += m["runningWorkers"]
-       elif "busyWorkers" in m :
-         self.busyWorkers += m["busyWorkers"] 
-       logging.debug(f'{self.busyWorkers=} {self.runningWorkers=}')
+  def processActivityMsg(self,msg) :
+     m=msg["msg"]
+     if "runningWorkers" in m :
+       if msg["id"] not in self.runningWorkers :
+         self.runningWorkers[msg["id"]] = 0
+       self.runningWorkers[msg["id"]] += m["runningWorkers"]
+     elif "busyWorkers" in m :
+       if msg["id"] not in self.busyWorkers :
+         self.busyWorkers[msg["id"]] = 0
+       self.busyWorkers[msg["id"]] += m["busyWorkers"] 
      else :
-       logging.error("No pid on activity message {m}")
+       logging.error("Unknown activity msg {msg}")
+     logging.debug(f'{self.busyWorkers=} {self.runningWorkers=}')
 
 #---------------------------------------------------------------------------------------------
   def processMsg(self,m) :

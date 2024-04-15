@@ -37,7 +37,7 @@ def closedModel(args,resultQueue):
 #------------------------------------------------------------------------------
 def openedModel(args,resultQueue):
   logging.warning(f'Launching {args.action}')
-  print(f'Launching {args.action}')
+  #print(f'Launching {args.action}')
   parms={"queue":resultQueue,"delay":int(args.postpone)}
   parms["jobsQueue"]=Queue()
   parms["controllerQueue"]=Queue()
@@ -144,7 +144,7 @@ def myParser(queue,input,lineno) :
   finally :
     if args.action != "scenario" :
       cmd=f'set summary {args.summary} id {args.id}'
-      queue.putQueue({'type':'cmd','cmd':cmd})
+      queueSender.sendMsgToQueue('cmd',{'cmd':cmd})
   if args.action == "scenario" :
     logging.info(f'Scenario to be processed')
     fScenario(args)
@@ -159,13 +159,14 @@ def myParser(queue,input,lineno) :
 if __name__ == "__main__":
   Defaults.init()
   queue=MPQueue(None,None)
+  queueSender=QueueSender("main","main",queue)
   queue.daemon=False
   myParser(queue,'',0)
   time.sleep(5)
   while True :
     children=multiprocessing.active_children() 
     if  len(children) == 1 :
-      queue.putQueue({'type':'cmd','cmd':'stop'})
+      queueSender.sendMsgToQueue('cmd',{'cmd':'stop'})
       break
     time.sleep(5)
   print("Start waiting for queue reader")
