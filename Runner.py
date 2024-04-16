@@ -16,7 +16,6 @@ class Runner() :
   def __init__(self,args,parms) :
     self.args=args
     self.parms=parms
-    self.pNum=parms["pNum"]
     self.childClassName=parms["childClassName"]
     self.stepName='default'
     self.requestName='default'
@@ -30,15 +29,11 @@ class Runner() :
     #self.setTransaction(False)
     self.id=f'{self.args.id}.{os.getpid()}'
     self.pid=os.getpid()
-    self.setStartTime()
-    self.setStopTime()
-    self.stopTimem1=self.stopTime
     self.thru=0
     self.setFullId()
     self.queue=self.parms["queue"]
     self.queueSender=self.parms["queueSender"]
     self.controllerQueue=self.parms["controllerQueue"]
-    self.name=self.args.id
     now=datetime.datetime.now()
     if self.args.openedmodel :
       logging.info(f"Opened model")
@@ -56,11 +51,8 @@ class Runner() :
   def createCut(self) :
     qualifiers=self.args.action.split('.')
     obj=qualifiers[-1]
-    #self.args.id=f'{self.args.id}.{os.getpid()}'
     self.cut=getattr(importlib.import_module(self.args.action), obj)(self.args,self.parms)
     self.parms["childClassName"]=self.cut.__class__.__name__
-    logging.debug(f'MPRunner {self.name}  created')
-
 
   #--------------------------------------------------------------------------------------
   def setTransaction(self,transaction) :
@@ -71,7 +63,6 @@ class Runner() :
       self.transactionId=f'None'
     self.setFullId('')
       
-      
   #--------------------------------------------------------------------------------------
   def setFullId(self,qualifier=0) :
     self.fullId=f'{self.id}.{self.childClassName}.{qualifier}'
@@ -79,14 +70,6 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def setRequestName(self,name) :
     self.requestName=name
-
-  #--------------------------------------------------------------------------------------
-  def setStartTime(self) :
-    self.startTime=time.time()
-
-  #--------------------------------------------------------------------------------------
-  def setStopTime(self) :
-    self.stopTime=time.time()
 
   #--------------------------------------------------------------------------------------
   def loop(self,cut) :
@@ -103,30 +86,27 @@ class Runner() :
 
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
-    logging.info(f'{self.name} loopQueue() starting ')
+    logging.info(f'{self.id} loopQueue() starting ')
     self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'ready'})
     while True :
-      logging.debug(f'{self.name} loopQueue() waiting for event in jobQueue')
+      logging.debug(f'{self.id} loopQueue() waiting for event in jobQueue')
       work=self.parms["jobsQueue"].get()
       logging.info(f'{work=}')
       if "type" in work :
         if work["type"] == "cmd" and work["cmd"]=="stop" :
-          logging.info(f'{self.name} getting stop cmd event, exiting')
+          logging.info(f'{self.id} getting stop cmd event, exiting')
           break
       elif work is None :
-        logging.info(f'{self.name} null event, exiting')
+        logging.info(f'{self.id} null event, exiting')
         break
-      self.sendWorkersActivityStats("busyWorkers",1)
       now=time.time() 
       waitTime=now - work["genTime"]
       logging.debug(f'now {now} event : {work} waited {waitTime}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'busy'})
       self.loopOnSteps(cut)
       self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
-      logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
-      self.sendWorkersActivityStats("busyWorkers",-1)
-    logging.info(f'{self.name} loopQueue() terminated ')
+    logging.info(f'{self.id} loopQueue() terminated ')
     self.controllerQueue.put({'from':'worker','id':self.id,'pid':self.pid,'msg':'terminated'})
 
   #----------------------------------------------------------------------
@@ -136,19 +116,15 @@ class Runner() :
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
     for i in range(0,int(self.args.loops)) :
-      self.sendWorkersActivityStats("busyWorkers",1) 
-      logging.info(f'{self.name} loopLoop() {i}')
+      logging.info(f'{self.id} loopLoop() {i}')
       self.loopOnSteps(cut)
-      self.sendWorkersActivityStats("busyWorkers",-1) 
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
     while (datetime.datetime.now() < self.exitTime ) :
-      logging.info(f'{self.name} loopDuration() ')
-      self.sendWorkersActivityStats("busyWorkers",1) 
+      logging.info(f'{self.id} loopDuration() ')
       self.loopOnSteps(cut)
-      self.sendWorkersActivityStats("busyWorkers",-1)
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
@@ -194,6 +170,7 @@ class Runner() :
   def loopOnSteps(self,cut) :
     steps=[x for x in re.split(',',self.args.steps) ]
 
+    self.sendWorkersActivityStats("busyWorkers",1) 
     self.createCut()
     cut=self.cut
     cut.resetBeforeSteps()
@@ -207,8 +184,6 @@ class Runner() :
       rmngr=cut.getRequestsManager()
       delta = rmngr.getDuration()
       now=datetime.datetime.now()
-      t=now.strftime("%Y-%m-%d %H:%M:%S.%f")
-      te=now.timestamp()
       nowTime=time.time()
       interval=nowTime - self.last
       if (interval > self.opThresh) :
@@ -226,4 +201,5 @@ class Runner() :
       for r in rmngr.getRequests() :
         self.reportRequest(rmngr,r,steps[j])
       time.sleep(float(self.args.pausestep))
+    self.sendWorkersActivityStats("busyWorkers",-1) 
 
