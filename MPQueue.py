@@ -149,7 +149,11 @@ class MPQueue(Process):
 #---------------------------------------------------------------------------------------------
   def processMsg(self,m) :
     now=datetime.datetime.now()
-    m["_queueNow"]=now
+    #m["_queueNow"]=now
+    m["_queueNow"]=f'{now}'
+    m["_queueNowEpoch"]=now.timestamp()
+    m["_queueTime"]=now.timestamp() - m["epoch"]
+
     logging.debug(f'Got msg {m}') 
     if "type" in m :
       if  m["type"] == "report" :
