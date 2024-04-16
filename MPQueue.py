@@ -177,6 +177,37 @@ class MPQueue(Process):
 
    
   #---------------------------------------------------------------------------------------------
+  def outJtl(self,msg) :
+    # timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+    #2024-04-15 18:54:15.743 1713200055.744 report          3      0.49        0        0        0 CLO_DUM2.27164.Dummy.0.RMngr.R_0         req        None            1      1.00 RC 0 step 0     t 1.001
+    #2024-04-15 18:54:16.810 1713200056.810 report          4      2.72        0        0        0 OPE_DUM1:27170.27172.Dummy.0.RMngr.R_0   req        None            1      0.49 RC 0 step 0     t 1.001
+    #2024-04-15 18:54:16.821 1713200056.821 report          5      2.72        0        0        0 OPE_DUM2:27174.27180.Dummy.0.RMngr.R_0   req        None            1      0.49 RC 0 step 0     t 1.001
+
+    #2024-04-15 18:54:35,782 pid=27152 MPQueue-1 MainThread MPQueue root  processMsg 153 DEBUG Got msg {'type': 'report', 'from': 'worker', 'time': '2024-04-15 18:54:35.782029', 'epoch': 1713200075.782029, 'pid': 27167, 'id': 'CLO_DUM2.27167', 'msg': {'time': '2024-04-15 18:54:34.780510', 'epoch': 1713200074.78051, 'fullId': 'CLO_DUM2.27167.Dummy.0.RMngr.R_0', 'opcount': 4, 'nature': 'req', 'transactionId': 'None', 'thru': 0.33281953974092265, 'rc': 0, 'step': '0', 'delta': 1.001377820968628}, '_qSize': 0, '_queueNow': datetime.datetime(2024, 4, 15, 18, 54, 35, 782257)}
+    #2024-04-15 18:54:21,830 pid=27152 MPQueue-1 MainThread MPQueue root  processMsg 153 DEBUG Got msg {'type': 'report', 'from': 'worker', 'time': '2024-04-15 18:54:21.829941', 'epoch': 1713200061.829941, 'pid': 27199, 'id': 'OPE_DUM2:27174.27199', 'msg': {'time': '2024-04-15 18:54:20.828178', 'epoch': 1713200060.828178, 'fullId': 'OPE_DUM2:27174.27199.Dummy.0.RMngr.R_0', 'opcount': 1, 'nature': 'req', 'transactionId': 'None', 'thru': 0.165883936329548, 'rc': 0, 'step': '0', 'delta': 1.0012710094451904}, '_qSize': 0, '_queueNow': datetime.datetime(2024, 4, 15, 18, 54, 21, 830359)}
+
+
+
+    m=msg["msg"]
+    timeStamp=f'{m["time"][:-3]}'
+    elapsed=f'{m["delta"]:5.3f}'
+    label=f'{m["fullId"]:40s}'
+    responseCode=f'{m["rc"]}'
+    responseMessage==f''
+    threadName=f'{m["fullId"]:40s}'
+    dataType=f''
+    success=f'{m["rc"]}'
+    failureMessage=f''
+    bytes=f'1000'
+    sentBytes=f'1000'
+    grpThreads=f'1000'
+    allThread=f'1000'
+    URL=f'{m["fullId"]:40s}'
+    Latency=f'{m["delta"]:5.3f}'
+    IdleTime=f'0'
+    Connect=f'0'
+   
+  #---------------------------------------------------------------------------------------------
   def out(self,msg) :
     m=msg["msg"]
     if self.args.outformat == 'short' :
@@ -191,7 +222,7 @@ class MPQueue(Process):
       self.jtlFile.write((f"{m}\n"))
     elif self.args.outformat == 'jtl' :
       # timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
-      pass
+      self.outJtl(msg)
     else : 
       self.jtlFile.write((f'{m["time"][:-3]} typ {msg["type"]:8s}'
             f' {msg["_qSize"]:6d} ops {self.opCount:8d} gThru {self.thru:9.2f}'

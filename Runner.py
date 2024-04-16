@@ -1,3 +1,4 @@
+import importlib
 import re
 import os
 import time
@@ -27,7 +28,7 @@ class Runner() :
     self.opThresh=int(self.args.summary)
     self.last=time.time()
     #self.setTransaction(False)
-    self.id=self.args.id
+    self.id=f'{self.args.id}.{os.getpid()}'
     self.pid=os.getpid()
     self.setStartTime()
     self.setStopTime()
@@ -52,6 +53,16 @@ class Runner() :
         self.loopMethod=self.loopLoop
 
   #--------------------------------------------------------------------------------------
+  def createCut(self) :
+    qualifiers=self.args.action.split('.')
+    obj=qualifiers[-1]
+    #self.args.id=f'{self.args.id}.{os.getpid()}'
+    self.cut=getattr(importlib.import_module(self.args.action), obj)(self.args,self.parms)
+    self.parms["childClassName"]=self.cut.__class__.__name__
+    logging.debug(f'MPRunner {self.name}  created')
+
+
+  #--------------------------------------------------------------------------------------
   def setTransaction(self,transaction) :
     self.isTransaction=transaction
     if transaction :
@@ -63,7 +74,7 @@ class Runner() :
       
   #--------------------------------------------------------------------------------------
   def setFullId(self,qualifier=0) :
-    self.fullId=f'{self.args.id}.{self.childClassName}.{qualifier}'
+    self.fullId=f'{self.id}.{self.childClassName}.{qualifier}'
 
   #--------------------------------------------------------------------------------------
   def setRequestName(self,name) :
@@ -81,11 +92,14 @@ class Runner() :
   def loop(self,cut) :
     try :
       logging.debug(f'loop() called, will trigger self.loopMethod {self.loopMethod}')
+      self.sendWorkersActivityStats("runningWorkers",1)
       self.loopMethod(cut)
     except KeyboardInterrupt:
       print("Caught KeyboardInterrupt, terminating loop")
     except Exception as e :
       print(f'loop stopped {e}')
+    finally :
+      self.sendWorkersActivityStats("runningWorkers",-1)
 
   #--------------------------------------------------------------------------------------
   def loopQueue(self,cut) :
@@ -102,39 +116,39 @@ class Runner() :
       elif work is None :
         logging.info(f'{self.name} null event, exiting')
         break
-      self.sendWorkersActivityStats(1)
+      self.sendWorkersActivityStats("busyWorkers",1)
       now=time.time() 
       waitTime=now - work["genTime"]
       logging.debug(f'now {now} event : {work} waited {waitTime}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'busy'})
-      self.loopOnLengths(cut)
+      self.loopOnSteps(cut)
       self.controllerQueue.put({'from':'worker','msg':'event','wait':waitTime})
       logging.debug(f'{self.name} loopQueue() processed {waitTime=}')
       self.controllerQueue.put({'from':'worker','pid':self.id,'msg':'idle'})
-      self.sendWorkersActivityStats(-1)
+      self.sendWorkersActivityStats("busyWorkers",-1)
     logging.info(f'{self.name} loopQueue() terminated ')
     self.controllerQueue.put({'from':'worker','id':self.id,'pid':self.pid,'msg':'terminated'})
 
   #----------------------------------------------------------------------
-  def sendWorkersActivityStats(self,count) :
-    self.queueSender.sendMsgToQueue("activity",{"busyWorkers" : count})
+  def sendWorkersActivityStats(self,counter,count) :
+    self.queueSender.sendMsgToQueue("activity",{"cut":self.parms["childClassName"],counter : count})
 
   #--------------------------------------------------------------------------------------
   def loopLoop(self,cut) :
     for i in range(0,int(self.args.loops)) :
-      self.sendWorkersActivityStats(1) 
+      self.sendWorkersActivityStats("busyWorkers",1) 
       logging.info(f'{self.name} loopLoop() {i}')
-      self.loopOnLengths(cut)
-      self.sendWorkersActivityStats(-1) 
+      self.loopOnSteps(cut)
+      self.sendWorkersActivityStats("busyWorkers",-1) 
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
   def loopDuration(self,cut) :
     while (datetime.datetime.now() < self.exitTime ) :
       logging.info(f'{self.name} loopDuration() ')
-      self.sendWorkersActivityStats(1) 
-      self.loopOnLengths(cut)
-      self.sendWorkersActivityStats(-1)
+      self.sendWorkersActivityStats("busyWorkers",1) 
+      self.loopOnSteps(cut)
+      self.sendWorkersActivityStats("busyWorkers",-1)
       time.sleep(float(self.args.pauseloop))
 
   #--------------------------------------------------------------------------------------
@@ -177,8 +191,11 @@ class Runner() :
 
 
   #--------------------------------------------------------------------------------------
-  def loopOnLengths(self,cut) :
+  def loopOnSteps(self,cut) :
     steps=[x for x in re.split(',',self.args.steps) ]
+
+    self.createCut()
+    cut=self.cut
     cut.resetBeforeSteps()
     for j in range(0,len(steps)) :
       self.opCount += 1

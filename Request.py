@@ -13,6 +13,8 @@ class Request() :
     self.end=None
     self.endTime=None
     self.duration=0
+    self.inlen=0
+    self.outlen=0
     self.error=None
     self.rc=-1
     logging.debug(f" request {self.name} created")
@@ -43,6 +45,22 @@ class Request() :
   #------------------------------------------------------------------------
   def setRc(self,rc) :
     self.rc=rc
+
+  #------------------------------------------------------------------------
+  def setInlen(self,l) :
+    self.inlen=l
+
+  #------------------------------------------------------------------------
+  def getInlen(self) :
+    return(self.inlen)
+
+  #------------------------------------------------------------------------
+  def setOutlen(self,l) :
+    self.outlen=l
+
+#------------------------------------------------------------------------
+  def getOutlen(self) :
+    return(self.outlen)
 
   #------------------------------------------------------------------------
   def setError(self,error) :
