@@ -51,11 +51,14 @@ class OPScheduler() :
 
   #---------------------------------------------------------------------------------------------------------------
   def getBurstCycle(self) :
-    burstArgs = int(self.args.burst)
-    if burstArgs == 0 :
-      burstCycle=random.randint(1,self.burstMax)
+    if self.args.burst.startswith('f') :
+      burstCycle = int(self.args.burst[1:])
     else :
-      burstCycle=random.randint(1,burstArgs)
+      burstArgs = int(self.args.burst)
+      if burstArgs == 0 :
+        burstCycle=random.randint(1,self.burstMax)
+      else :
+        burstCycle=random.randint(1,burstArgs)
     #return(1)
     logging.debug(f'Next burst will contains {burstCycle=} events')
     return(burstCycle)
