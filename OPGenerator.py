@@ -4,6 +4,7 @@ import logging
 import time
 import datetime
 import logging
+import random
 from datetime import datetime,timedelta
 
 # custom process class
@@ -26,6 +27,16 @@ class OPGenerator(Process):
     logging.debug(f'{begin=} {end=} {now=} {thruBegin=} {thruEnd=} {thru=}')
     return(1/thru)
 
+  def getBurstCycle(self,burstMax) :
+    burstArgs = int(self.args.burst)
+    if burstArgs == 0 :
+      burstCycle=random.randint(1,burstMax)
+    else :
+      burstCycle=random.randint(1,burstArgs)
+    #return(1)
+    logging.debug(f'Next burst will contains {burstCycle=} events')
+    return(burstCycle)
+
     
   def run(self):
     try :
@@ -43,20 +54,34 @@ class OPGenerator(Process):
         else : 
           thruBegin=float(thru0)
           thruEnd=float(thru0)
+        burstMax=int((thruEnd- thruBegin)/2)
 
         logging.info(f' {self.name} {duration=} {thruBegin=} {thruEnd=}')
         #now=datetime.now()
         now = time.time()
         begin = now
         end=now + int(duration)
+        burstCycle=self.getBurstCycle(burstMax)
+        burstSkip = 0
         while now < end :
           sleepDuration=self.getSleepDuration(begin,end,now,thruBegin,thruEnd)
           #time.sleep(1/float(thru))
           time.sleep(sleepDuration)
-          count += 1
-          logging.debug(f'{self.name} {now=} {end=}  generates event {count=}')
-          self.jobsQueue.put({"type":"event","genTime":now})
-          self.controllerQueue.put({"from":"generator","msg":"event","count":count})
+          if burstSkip == 0 :
+            burstCount = 0
+            while burstCycle > 0 :
+              count += 1
+              logging.debug(f'{self.name} {now=} {end=}  generates event {count=} {burstCycle=}')
+              self.jobsQueue.put({"type":"event","genTime":now})
+              self.controllerQueue.put({"from":"generator","msg":"event","count":count})
+              burstCycle -= 1
+              burstCount += 1
+              if burstCount > 1 :
+                burstSkip += 1
+            burstCycle=self.getBurstCycle(burstMax)
+          else : 
+            logging.debug(f'{self.name} {now=} {end=}  skipping burst event {count=} {burstSkip=}')
+            burstSkip -= 1
           now=time.time()
           if (count % 100) == 0 :
             logging.info(f'{self.name} generated {count=} events')

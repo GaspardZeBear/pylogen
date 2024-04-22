@@ -102,7 +102,7 @@ def myParser(queue,input,lineno) :
   parser.add_argument('--openedmodel',   help="",action="store_true")
   parser.add_argument('--controllerDelay',   help="",default="5")
   parser.add_argument('--generatorDelay',   help="",default="1")
-  parser.add_argument('--burst',   help="",default="1000")
+  parser.add_argument('--burst',   help="",default="1")
   parser.add_argument('--schedule',   help="",default="30@10,30@20,30@30")
   parser.add_argument('--workerDelay',   help="",default="1")
   parser.add_argument('--trigger',   help="",default="3")
