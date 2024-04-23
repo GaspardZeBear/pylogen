@@ -100,6 +100,18 @@ A controller adjusts the number of worker to process as quick as possible
 --trigger : if more than trigger events in the jobqueue, start a new worker
 --prefork : number of workers to start before generation begins
 --decrease : number of consecutive times the controller found no job in queue : then kills a worker to spare resources
+--burst : non-linear : at a given time a burst of events will be generated 
+
+The max size of a burst can be controlled
+--- burst = 0 : burst has random size, max equals to mean requested throughput 
+--- burst = n : burst has random size, max equals to n
+--- burst = f<n> : burst has fixed size <n> 
+
+burst = f1 is the same as burst = 1 ! 
+
+After a burst of size n, the n-1 following triggers won't generate any events
+
+
 
 ### Scenario 
 
