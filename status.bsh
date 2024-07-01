@@ -1,0 +1,2 @@
+git status | grep modi | sed 's/\s*modified:/git add/'
+git status | grep new | sed 's/\s*new file:/git add/'
